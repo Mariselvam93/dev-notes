@@ -205,3 +205,82 @@ class Program
 
 Asynchronous programming in C# makes applications more scalable and responsive, especially when dealing with I/O-bound operations like database queries, API calls, and file operations.
 
+---
+
+In an **async program** in C#, the **Task-based Asynchronous Pattern (TAP)** is used. The mechanism that informs when an `async` operation completes and returns a response is **a combination of the Task and the await mechanism**.
+
+### **Who Notifies When an Async Task Completes?**
+1. **The Task Itself (`Task` or `Task<TResult>`)**  
+   - The `Task` object represents an ongoing operation and knows when it has completed.
+   
+2. **The `await` Keyword**  
+   - The `await` keyword **pauses execution** of the method until the awaited task completes.
+   - Once the task finishes, the execution **resumes** from where it left off.
+
+3. **The Task Scheduler (Thread Pool)**  
+   - The **Task Scheduler** runs and monitors tasks using worker threads from the **Thread Pool**.
+   - It ensures the `Task` continues executing on the appropriate thread once completed.
+
+---
+
+### **Example of Async Execution Notification**
+```csharp
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task<string> GetDataAsync()
+    {
+        Console.WriteLine("Fetching data...");
+        await Task.Delay(2000); // Simulating an async operation
+        return "Data received!";
+    }
+
+    static async Task Main()
+    {
+        Console.WriteLine("Request sent.");
+        string result = await GetDataAsync(); // Task notifies when done
+        Console.WriteLine(result); // This runs only after GetDataAsync completes
+    }
+}
+```
+### **Flow of Execution:**
+1. `Main()` calls `GetDataAsync()`.
+2. `await Task.Delay(2000);` **pauses execution** and **returns control** to the caller (`Main`).
+3. Once the `Task.Delay` completes, the **Task Scheduler** resumes execution of `GetDataAsync()`.
+4. The method returns `"Data received!"`, and `Main()` prints it.
+
+---
+
+### **Alternative: Using `ContinueWith()` (Without `await`)**
+Instead of `await`, we can use `.ContinueWith()` to manually specify what should happen when a task completes.
+
+```csharp
+static Task<string> GetDataAsync()
+{
+    return Task.Run(() =>
+    {
+        Task.Delay(2000).Wait(); // Simulating delay
+        return "Data received!";
+    });
+}
+
+static void Main()
+{
+    Console.WriteLine("Request sent.");
+    GetDataAsync().ContinueWith(task => Console.WriteLine(task.Result)); // Notification after completion
+    Console.ReadLine(); // Keep console open
+}
+```
+💡 **Note:** `.ContinueWith()` is more complex and less recommended than `await` for readability.
+
+---
+
+### **Summary**
+- The **Task itself** tracks when an async operation completes.
+- The **await keyword** pauses execution and resumes it once the Task completes.
+- The **Task Scheduler (Thread Pool)** ensures execution continues on the right thread.
+- **Event-driven execution** ensures the caller gets notified when the async method completes.
+
+🚀 **In most cases, `await` is the best way to handle async execution in C#.**
