@@ -537,4 +537,3 @@ kubectl apply -f hpa.yaml
 - **ConfigMap & Secrets** store non-sensitive and sensitive configurations.
 - **HPA** automatically scales the service based on CPU usage.
 
-Would you like a **Helm chart** to automate this setup? 🚀

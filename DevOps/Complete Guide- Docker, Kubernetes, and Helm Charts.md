@@ -593,7 +593,7 @@ Docker, Kubernetes, and Helm Charts are related but serve different purposes in 
 | **Purpose** | Runs containers | Manages containers | Manages K8s deployments |
 | **Scope** | Single container | Cluster of containers | Templates for K8s apps |
 | **Management** | Manual | Automated | Config-driven |
-| **Scaling** | Not built-in | Auto-scaling | Simplifies scaling via configs |
+| **Scaling** | Not built-in | Auto-scaling | Simplifies scaling via configs | 
 | **Ease of Use** | Simple | Complex | Easier for K8s |
 
 ---
