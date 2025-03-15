@@ -203,3 +203,211 @@ jobs:
 - **Use Jenkins** for large-scale **AWS EKS deployments** with flexibility.
 - **Use GitHub Actions** for **hybrid/self-managed Kubernetes clusters**.
 
+--- 
+
+# **Code Coverage and Security**
+
+- **Code Coverage**: Coverlet, ReportGenerator  
+- **Security Scanning**: Snyk, SonarQube  
+---
+
+# **🔹 Code Coverage with Coverlet & ReportGenerator**
+Coverlet is a cross-platform code coverage tool for .NET, and ReportGenerator converts coverage results into readable reports.
+
+### **Modify Build & Test Stage (Azure DevOps, Jenkins, GitHub Actions)**
+#### **Example: Run Tests with Code Coverage**
+```bash
+dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+```
+
+#### **Generate Reports using ReportGenerator**
+```bash
+reportgenerator "-reports:./TestResults/coverage.cobertura.xml" "-targetdir:./CodeCoverageReport"
+```
+
+- Generates an **HTML report** in `CodeCoverageReport/`.
+- **Cobertura format** is used to integrate with CI/CD.
+
+---
+
+# **🔹 Security & Vulnerability Scanning**
+## **1️⃣ Snyk (Open Source & License Scanning)**
+Snyk scans .NET projects for vulnerabilities in dependencies.
+
+### **Azure DevOps**
+```yaml
+- script: snyk test --all-projects
+  displayName: 'Run Snyk Vulnerability Scan'
+  env:
+    SNYK_TOKEN: $(SNYK_TOKEN)
+```
+
+### **Jenkins**
+```groovy
+stage('Security Scan') {
+    steps {
+        sh 'snyk test --all-projects'
+    }
+}
+```
+
+### **GitHub Actions**
+```yaml
+- name: Run Snyk Scan
+  uses: snyk/actions/dotnet@master
+  env:
+    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+```
+
+✅ **Finds vulnerabilities in NuGet dependencies**.
+
+---
+
+## **2️⃣ SonarQube (Code Quality & Security)**
+SonarQube detects security issues and maintains **code quality**.
+
+### **Azure DevOps**
+```yaml
+- task: SonarQubePrepare@4
+  inputs:
+    SonarQube: 'SonarQubeServiceConnection'
+    scannerMode: 'MSBuild'
+    projectKey: 'my-dotnet-api'
+    projectName: 'MyDotNetAPI'
+
+- script: dotnet build
+  displayName: 'Build Solution'
+
+- task: SonarQubeAnalyze@4
+- task: SonarQubePublish@4
+```
+
+### **Jenkins**
+```groovy
+stage('SonarQube Scan') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            sh 'dotnet sonarscanner begin /k:"my-dotnet-api"'
+            sh 'dotnet build'
+            sh 'dotnet sonarscanner end'
+        }
+    }
+}
+```
+
+### **GitHub Actions**
+```yaml
+- name: SonarQube Scan
+  uses: sonarsource/sonarqube-scan-action@master
+  env:
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    SONAR_HOST_URL: 'https://sonarqube.example.com'
+```
+
+✅ **Finds security issues, code smells, and enforces best practices**.
+
+---
+
+# **📌 Full CI/CD Flow (Azure DevOps)**
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '8.0.x'
+
+  - script: dotnet restore
+    displayName: 'Restore dependencies'
+
+  - script: dotnet build --configuration Release
+    displayName: 'Build solution'
+
+  - script: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+    displayName: 'Run Tests & Collect Code Coverage'
+
+  - script: reportgenerator "-reports:./TestResults/coverage.cobertura.xml" "-targetdir:./CodeCoverageReport"
+    displayName: 'Generate Coverage Report'
+
+  - script: snyk test --all-projects
+    displayName: 'Run Snyk Vulnerability Scan'
+    env:
+      SNYK_TOKEN: $(SNYK_TOKEN)
+
+  - task: SonarQubePrepare@4
+    inputs:
+      SonarQube: 'SonarQubeServiceConnection'
+      scannerMode: 'MSBuild'
+      projectKey: 'my-dotnet-api'
+      projectName: 'MyDotNetAPI'
+
+  - script: dotnet sonarscanner begin /k:"my-dotnet-api"
+  - script: dotnet build
+  - script: dotnet sonarscanner end
+
+  - task: Docker@2
+    inputs:
+      command: buildAndPush
+      repository: myacr.azurecr.io/my-api
+      dockerfile: 'Dockerfile'
+      containerRegistry: 'MyAzureContainerRegistryServiceConnection'
+      tags: latest
+
+  - script: |
+      az aks get-credentials --resource-group my-rg --name my-aks-cluster
+      helm upgrade --install my-api ./helm --values helm/values.yaml
+    displayName: 'Deploy to AKS'
+```
+
+---
+
+# **📌 Summary**
+| Feature | Tool Used |
+|---------|----------|
+| **Code Coverage** | Coverlet, ReportGenerator |
+| **Vulnerability Scan** | Snyk |
+| **Code Quality & Security** | SonarQube |
+| **Containerization** | Docker |
+| **Deployment** | Kubernetes + Helm |
+
+This ensures **high-quality, secure** deployments in **AKS, EKS, and self-managed clusters**. 🚀
+
+---
+
+### **🔍 Snyk vs. SonarQube: Key Differences**  
+
+| Feature              | **Snyk** 🛡️ | **SonarQube** 🔍 |
+|----------------------|------------|----------------|
+| **Purpose**         | Security & vulnerability scanning | Code quality, security analysis, and maintainability |
+| **Focus**           | Finds security vulnerabilities in dependencies (NuGet, NPM, etc.) | Detects code smells, bugs, and security flaws in source code |
+| **Type of Scan**    | **Dependency-based security scanning** (e.g., NuGet, NPM, Docker images) | **Static Code Analysis (SAST)** for security issues & best practices |
+| **Integration**     | Cloud-based & CLI | On-premise or cloud-based |
+| **Languages**      | Supports multiple languages (.NET, Java, JavaScript, Python, etc.) | Supports multiple languages with deeper static analysis |
+| **Security Rules**  | CVE Database, known vulnerabilities | OWASP, SAST, security rules for code |
+| **Fix Suggestions** | Provides automated fix recommendations (e.g., upgrade vulnerable packages) | Highlights security issues but does not provide automatic fixes |
+| **License Scanning** | Yes, detects open-source license compliance issues | No |
+| **Reports**        | Security-focused | Code quality, maintainability, security, technical debt |
+
+---
+
+### **🔹 When to Use Snyk?**
+✅ You want to **detect vulnerabilities in dependencies** (NuGet, NPM, Docker images).  
+✅ You need **automated security fixes** for outdated or vulnerable packages.  
+✅ You require **license compliance checks** (e.g., GPL, MIT, Apache).  
+
+### **🔹 When to Use SonarQube?**
+✅ You need to enforce **code quality standards** and detect **code smells**.  
+✅ You want to **find security flaws in your actual codebase** (not just dependencies).  
+✅ You want to **track technical debt** and improve maintainability.  
+
+---
+
+### **🚀 Best Practice: Use Both!**  
+For a **robust CI/CD pipeline**, use **Snyk for dependency security** and **SonarQube for code quality & static security analysis**.
