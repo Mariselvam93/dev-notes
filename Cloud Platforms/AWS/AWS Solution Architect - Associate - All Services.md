@@ -103,6 +103,14 @@ The exam emphasizes designing architectures based on the **AWS Well-Architected 
 - Performance Efficiency
 - Cost Optimization
 
+### Well-Architected Framework
+- **Security**: IAM, KMS, Security Groups, WAF, Shield, GuardDuty.
+- **Reliability**: Auto Scaling, Multi-AZ, Backup & Restore.
+- **Performance Efficiency**: Caching (CloudFront, ElastiCache), Database optimization.
+- **Cost Optimization**: Reserved Instances, Spot Instances, Compute Savings Plans.
+- **Operational Excellence**: AWS CloudFormation, AWS Config, CloudWatch.
+
+
 You’ll need to know how to combine services like EC2, S3, RDS, VPC, and IAM to build solutions, as well as understand high availability (e.g., multi-AZ deployments), scalability (e.g., Auto Scaling), and cost management.
 
 ---
