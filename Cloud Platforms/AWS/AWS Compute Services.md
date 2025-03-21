@@ -157,6 +157,56 @@ AWS Fargate is a **serverless compute engine for containers**. It eliminates the
 
 ---
 
+## **Choosing the Right Compute Service**
+| **Service**         | **Use When** |
+|----------------------|-------------|
+| **EC2** | You need full control over the OS and instance configuration. |
+| **Lambda** | You need to run event-driven, short-lived tasks without managing servers. |
+| **Fargate** | You want to run containers without managing EC2 instances. |
+| **ECS** | You need a managed container service that integrates well with AWS. |
+| **EKS** | You want to use Kubernetes for managing containers at scale. |
+| **Batch** | You need to process large-scale batch jobs. |
+| **Lightsail** | You need a simple, cost-effective VPS for websites or small applications. |
+| **Outposts** | You need AWS services in an on-premises environment. |
+| **Elastic Beanstalk** | You want an easy-to-use platform for deploying web applications. |
+| **App Runner** | You need a managed service to deploy containerized web applications. |
+
+---
+## **Key Differences Between ECS, EKS, Fargate, and App Runner**
+
+| Feature       | **ECS** | **EKS** | **Fargate** | **App Runner** |
+|--------------|--------|--------|----------|-------------|
+| **Orchestration** | AWS-native container management | Kubernetes | Works with ECS/EKS | Fully managed for web apps |
+| **Infrastructure** | EC2 (self-managed) or Fargate | EC2 (self-managed) or Fargate | Serverless | Fully serverless |
+| **Scaling** | Auto Scaling via ECS | Kubernetes Horizontal Scaling | Auto Scales | Auto Scales |
+| **Networking** | VPC, ALB integration | Kubernetes networking (CNI) | VPC, ALB integration | Managed by AWS |
+| **Ease of Use** | Simple | Complex (Kubernetes expertise needed) | Easiest for containers | Easiest for web apps |
+| **Use Case** | AWS-native containerized apps | Kubernetes workloads | Serverless containers | Deploying web apps quickly |
+| **Pricing Model** | Pay for EC2 or Fargate | Pay for EC2 or Fargate | Pay per vCPU/memory usage | Pay for request & compute time |
+
+---
+## **When to Use Each?**
+✅ **Use ECS** if:  
+- You want **simple AWS-native** container orchestration.  
+- You don’t need Kubernetes' complexity.  
+- You need deep integration with AWS services like IAM, ALB, CloudWatch.  
+
+✅ **Use EKS** if:  
+- You need **Kubernetes** for its ecosystem, flexibility, and multi-cloud support.  
+- You already have Kubernetes workloads and want to move them to AWS.  
+- You want more control over networking, scaling, and deployments.  
+
+✅ **Use Fargate** if:  
+- You want **serverless containers** (no EC2 management).  
+- You have **variable workloads** that need autoscaling.  
+- You want to avoid managing nodes and infrastructure.  
+
+✅ **Use App Runner** if:  
+- You want **the easiest way to deploy web apps** without managing anything.  
+- You have a **containerized web application** that needs automatic scaling.  
+- You don’t want to handle networking, scaling, or orchestration.  
+
+---
 # 🔥 **Final Thoughts**
 These compute services help in different **use cases** like **web hosting, microservices, serverless applications, and batch processing**.  
 
