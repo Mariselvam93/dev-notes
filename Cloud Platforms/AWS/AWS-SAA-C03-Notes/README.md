@@ -486,7 +486,7 @@ Outputs: # Outputs from the template being applied
 ## CloudWatch Basics
 
 > *Core supporting service within AWS which provides metric, log and event management services.
-Used through other AWS services for health and performance monitoring, log management and nerveless architectures*
+Used through other AWS services for health and performance monitoring, log management and serveless architectures*
 > 
 
 ![Untitled](img/Untitled%202.png)
@@ -1172,7 +1172,7 @@ Keys never leave KMS - Provides FIPS 140-2 (L2)**
 
 ### Key Concepts
 
-- KMS Keys are isolated to a region and lever leave
+- KMS Keys are isolated to a region and never leave
 - Multi-region keys exist
 - AWS Owned & Customer Owned
 - Customer Owned: AWS Managed og *Customer Managed KEYS*
@@ -1249,15 +1249,15 @@ Keys never leave KMS - Provides FIPS 140-2 (L2)**
     - **Role separation!** S3 admin with full access can’t see the unencrypted version of objects - need access to the KMS key
         
         ![Untitled](img/Untitled%2015.png)
-        
-        | Method | Key Management | Encryption Processing | Extras |
-        |  |  |  |  |
-        | Client-Side | You | You |  |
-        | SSE-C | You | S3 |  |
-        | SSE-S3 | S3 | S3 |  |
-        | SSE-KMS | S3 & KMS | S3 | Rotation Control
-        Role Separation |
-        
+                
+        ---
+        | Method     | Key Management | Encryption Processing | Extras                |
+        |------------|----------------|------------------------|------------------------|
+        | Client-Side | You            | You                    |                        |
+        | SSE-C       | You            | S3                     |                        |
+        | SSE-S3      | S3             | S3                     |                        |
+        | SSE-KMS     | S3 & KMS       | S3                     | Rotation Control, Role Separation |
+        ---
         ![Untitled](img/Untitled%2016.png)
         
         ### Bucket Default Encryption
@@ -1298,8 +1298,8 @@ But, retrieval fee. Overall cost increases with frequent access.
 
 ### S3 Glacier Flexible
 
-> *Cold objects*
-Objects cannot be made publicly accessible. Any Access of data requires a retrieval process.
+> **Cold objects**
+cannot be made publicly accessible. Any Access of data requires a retrieval process.
 > 
 
 ![Untitled](img/Untitled%2021.png)
@@ -1498,13 +1498,14 @@ SQL-Like statement*
 - **Avoid common ranges** - avoid future issues
 - Reserve 2+ networks per region being used per account
 
-| VPC Size | Netmask | Subnet Size | Hosts/Subet* | Subnets/VPC | Total IPs* |
-|  |  |  |  |  |  |
-| Micro | /24 | /27 | 27 | 8 | 216 |
-| Small | /21 | /24 | 251 | 8 | 2008 |
-| Medium | /19 | /22 | 1019 | 8 | 8152 |
-| Large | /18 | /21 | 2043 | 8 | 16344 |
-| Extra Large | /16 | /20 | 4091 | 16 | 65456 |
+| VPC Size     | Netmask | Subnet Size | Hosts/Subnet* | Subnets/VPC | Total IPs* |
+|--------------|---------|-------------|----------------|--------------|-------------|
+| Micro        | /24     | /27         | 27             | 8            | 216         |
+| Small        | /21     | /24         | 251            | 8            | 2008        |
+| Medium       | /19     | /22         | 1019           | 8            | 8152        |
+| Large        | /18     | /21         | 2043           | 8            | 16344       |
+| Extra Large  | /16     | /20         | 4091           | 16           | 65456       |
+
 
 ### VPC Structure
 
