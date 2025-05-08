@@ -275,6 +275,82 @@ us-east-1a, us-east-1b, …, us-east-1f
 
 ## Virtual Private Cloud (VPC) Basics
 
+
+#### ✅ **VPC (Virtual Private Cloud)**
+
+* A **VPC** is your **isolated virtual network** in AWS — like your own private data center.
+* When you create a VPC, you define its **CIDR block** (e.g., `10.0.0.0/16`).
+
+#### ✅ **Subnets in VPC**
+
+* A subnet (short for subnetwork) is a smaller network segment within a larger computer network. It’s used to divide a large network into multiple, smaller, more manageable sections.
+* A **subnet** is a **subset of the VPC’s IP range** (e.g., `10.0.1.0/24`).
+* Subnets must reside entirely **within one Availability Zone**.
+* You can create **multiple subnets** across different AZs for high availability.
+
+#### ✅ **Types of Subnets:**
+
+* **Public Subnet**: Has a route to the **Internet Gateway**, so resources like EC2 instances can access the internet.
+* **Private Subnet**: No direct internet access — typically used for databases, backend services, etc.
+
+#### ✅ **Subnet Usage Examples:**
+
+* Deploy a web server in a **public subnet**.
+* Place a database in a **private subnet**.
+* Set up NAT Gateway in a **public subnet** to allow internet access from private subnets.
+
+### 🔐 Security and Routing:
+
+* Subnets work with **route tables**, **NACLs (network ACLs)**, and **security groups** to control traffic flow.
+* You can assign **custom route tables** per subnet to route traffic differently.
+
+
+### 🔧 Example Setup:
+
+* VPC CIDR: `10.0.0.0/16`
+* Public Subnet: `10.0.1.0/24` (with Internet Gateway)
+* Private Subnet: `10.0.2.0/24` (with NAT (Network Access Translation) Gateway access via public subnet)
+
+![alt text](img/image.png)
+
+---
+A **NAT Gateway (Network Address Translation Gateway)** in AWS allows **instances in a private subnet** to connect to the **internet or other AWS services**, while **preventing the internet from initiating connections** to those instances.
+
+---
+
+### 🔍 **Why use a NAT Gateway?**
+
+Instances in a **private subnet** can't directly access the internet. But sometimes, they need to:
+
+* Download updates
+* Access external APIs
+* Send logs to AWS services (e.g., CloudWatch)
+
+A **NAT Gateway** lets them make **outbound-only** internet requests **securely**.
+
+---
+
+### 🔧 **How it works:**
+
+1. The **NAT Gateway** is placed in a **public subnet**.
+2. It has a **public IP address**.
+3. **Private subnet route tables** are updated to forward internet-bound traffic to the NAT Gateway.
+4. The NAT Gateway **translates private IPs to its public IP**, sends requests, and passes back responses.
+
+---
+
+### ✅ Example Setup:
+
+* **VPC CIDR**: `10.0.0.0/16`
+* **Public Subnet**: `10.0.1.0/24` (hosts NAT Gateway)
+* **Private Subnet**: `10.0.2.0/24` (hosts EC2 instances)
+* **Route Table (Private)**:
+
+  * Destination: `0.0.0.0/0` → Target: `NAT Gateway`
+
+---
+
+
 💡 A virtual network inside AWS
 
 **A VPC is within 1 account & 1 region** ❗
@@ -288,7 +364,7 @@ Two types: Default VPC and Custom VPCs
 VPCs are created within a region. VPCs cannot communicate outside their network unless you specifically allow it. 
 **By default a VPC is entirely private.**❗
 
-**VPC CIDER (Classless Inter-Domain Routing):** Every VPC is allocated a range of IP addresses. If you allow anything to communicate to a VPC, it needs to communicate to that VPC CIDR. Any outgoing connection is going to originate from that VPC CIDR. Custom VPCs can have multiple CIDR ranges, but the default VPC only gets one, which is always the same.
+**VPC CIDR (Classless Inter-Domain Routing):** Every VPC is allocated a range of IP addresses. If you allow anything to communicate to a VPC, it needs to communicate to that VPC CIDR. Any outgoing connection is going to originate from that VPC CIDR. Custom VPCs can have multiple CIDR ranges, but the default VPC only gets one, which is always the same.
 ❗**Default VPC IP range: 172.31.0.0/16** ❗
 
 ****Each subnet within a VPC is located within a AZ, and can never be changed. Default VPC is configured to have a subnet in every AZ. Each use a part of the IP range and cannot overlap. This is how a VPC is resilient.
@@ -1485,7 +1561,7 @@ SQL-Like statement*
 
 ### VPC Considerations
 
-- VPC CIDR range
+- VPC CIDR (Classless Inter-Domain Routing) range
 - What size should the VPC be
 - Are there any networks we can’t use?
 - VPC’s, Cloud, On-premises, Partners & Vendors
