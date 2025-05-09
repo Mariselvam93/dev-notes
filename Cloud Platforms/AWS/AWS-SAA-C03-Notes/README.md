@@ -5062,7 +5062,203 @@ While Lambda itself is a single service, it can be **invoked in different ways**
 - TASK (Lambda, Batch, DynamoDB, ECS, SNS, SQS, Glue, SageMaker, EMR, Step Functions)
 
 ![Untitled](img/Untitled%20136.png)
+---
 
+**AWS Step Functions** is a serverless orchestration service that lets you **coordinate multiple AWS services** into **serverless workflows** using **state machines**. It’s ideal for automating business processes, building ETL pipelines, microservice orchestration, and error-handling logic.
+
+---
+
+### 🧭 **Key Concepts**
+
+| Concept           | Description                                                                |
+| ----------------- | -------------------------------------------------------------------------- |
+| **State Machine** | A workflow definition (in JSON/YAML) that defines a series of steps.       |
+| **States**        | Steps in the workflow (Task, Choice, Wait, Fail, Succeed, Parallel, etc.). |
+| **Task**          | A unit of work — usually invokes a Lambda, ECS, or other AWS service.      |
+| **Transitions**   | Define how control moves from one state to another.                        |
+| **Execution**     | A runtime instance of a state machine.                                     |
+
+---
+
+### 🔧 **Types of Workflows**
+
+| Workflow Type | Description                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| **Standard**  | Long-running, durable workflows (up to 1 year). Supports retries, error handling, audit.  |
+| **Express**   | High-throughput, short-duration workflows (up to 5 minutes). Lower cost, faster response. |
+
+---
+
+### 🧱 **Common State Types**
+
+| State Type | Purpose                                                        |
+| ---------- | -------------------------------------------------------------- |
+| `Task`     | Performs a unit of work (e.g., invoke Lambda, ECS, Glue, etc.) |
+| `Choice`   | Branching logic based on input data                            |
+| `Wait`     | Pause for a specific time or duration                          |
+| `Parallel` | Run multiple branches in parallel                              |
+| `Map`      | Iterate over an array and run steps for each item              |
+| `Pass`     | Pass data through without modifying                            |
+| `Fail`     | Stops execution with a failure                                 |
+| `Succeed`  | Stops execution successfully                                   |
+
+---
+
+### 🔌 **Integrated AWS Services**
+
+Step Functions natively integrates with over **200 AWS services**, including:
+
+* **AWS Lambda**
+* **Amazon S3**
+* **Amazon DynamoDB**
+* **Amazon ECS / Fargate**
+* **Amazon SNS / SQS**
+* **AWS Glue**
+* **SageMaker**
+* **EventBridge**
+
+---
+
+### 🎯 **Use Cases**
+
+* **ETL pipelines** using Glue, Lambda, and S3
+* **Order processing systems**
+* **Serverless microservice orchestration**
+* **Approval workflows**
+* **ML model training pipelines**
+* **Retry/error handling for workflows**
+
+---
+
+### 🔐 **Security & Monitoring**
+
+* IAM roles define execution permissions.
+* Integrated with **CloudWatch Logs**, **X-Ray**, and **AWS Audit Logs** for observability.
+* Supports encryption at rest (KMS).
+
+---
+
+### 💲 **Pricing Overview**
+
+| Workflow Type | Pricing Model                                      |
+| ------------- | -------------------------------------------------- |
+| **Standard**  | Per state transition                               |
+| **Express**   | Based on number of requests and execution duration |
+
+---
+Here's a **sample AWS Step Function** that simulates a **real-time order processing workflow** — something commonly seen in e-commerce or online service applications.
+
+---
+
+## 🛒 **Use Case: Order Processing Workflow**
+
+### 📋 **Workflow Steps**
+
+1. Validate the order.
+2. Check inventory.
+3. Charge the customer.
+4. Send confirmation email.
+5. If any step fails, handle the error gracefully.
+
+---
+
+## 🔁 **Step Function Diagram (Simplified)**
+
+```plaintext
+Start
+  ↓
+[Validate Order]
+  ↓
+[Check Inventory]
+  ↓
+[Charge Customer]
+  ↓
+[Send Confirmation Email]
+  ↓
+Success
+```
+
+---
+
+## 🧾 **JSON Definition of the State Machine**
+
+```json
+{
+  "Comment": "Order Processing Workflow",
+  "StartAt": "ValidateOrder",
+  "States": {
+    "ValidateOrder": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:ValidateOrder",
+      "Next": "CheckInventory",
+      "Catch": [{
+        "ErrorEquals": ["States.ALL"],
+        "Next": "FailState"
+      }]
+    },
+    "CheckInventory": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:CheckInventory",
+      "Next": "ChargeCustomer",
+      "Catch": [{
+        "ErrorEquals": ["States.ALL"],
+        "Next": "FailState"
+      }]
+    },
+    "ChargeCustomer": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:ChargeCustomer",
+      "Next": "SendConfirmationEmail",
+      "Catch": [{
+        "ErrorEquals": ["States.ALL"],
+        "Next": "FailState"
+      }]
+    },
+    "SendConfirmationEmail": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:SendEmail",
+      "End": true
+    },
+    "FailState": {
+      "Type": "Fail",
+      "Error": "OrderProcessingFailed",
+      "Cause": "An error occurred while processing the order."
+    }
+  }
+}
+```
+
+---
+
+## 🔧 **Lambda Function Roles (Examples)**
+
+* `ValidateOrder`: Check if order data is complete and valid.
+* `CheckInventory`: Confirm if items are in stock.
+* `ChargeCustomer`: Call a payment gateway and charge the card.
+* `SendEmail`: Send a confirmation email using SES.
+
+---
+
+## 🚀 **How to Deploy**
+
+1. Write and deploy each Lambda function.
+2. Go to **AWS Step Functions Console** → Create state machine.
+3. Choose **"Author with code snippets"**.
+4. Paste the JSON above.
+5. Assign IAM role with Lambda invoke permissions.
+6. Start execution with sample input like:
+
+```json
+{
+  "orderId": "ORD-1001",
+  "items": ["item1", "item2"],
+  "paymentInfo": {
+    "cardNumber": "**** **** **** 1234"
+  }
+}
+```
+
+---
 ## API Gateway
 
 > *API Gateway is a managed service from AWS which allows the creation of API Endpoints, Resources & Methods.*
