@@ -4100,6 +4100,119 @@ Writes to replica after primary write is complete. ***Can*** be accessed for rea
 
 ![Untitled](img/Untitled%20101.png)
 
+---
+Amazon RDS (Relational Database Service) and Amazon Aurora are both managed database services provided by AWS, but they have important differences in terms of performance, scalability, cost, and architecture. Here's a breakdown of the **key differences**:
+
+---
+
+### 🔑 **1. Engine Compatibility**
+
+* **RDS**: Supports multiple database engines:
+
+  * MySQL
+  * PostgreSQL
+  * MariaDB
+  * Oracle
+  * SQL Server
+* **Aurora**: Compatible with:
+
+  * MySQL (Aurora MySQL)
+  * PostgreSQL (Aurora PostgreSQL)
+  * **Built by AWS** for better performance and availability.
+
+---
+
+### 🔑 **2. Performance**
+
+* **RDS**:
+
+  * Standard performance based on the underlying engine.
+  * Limited read/write throughput.
+* **Aurora**:
+
+  * Up to **5x faster than MySQL** and **3x faster than PostgreSQL** on RDS.
+  * Uses a **distributed, fault-tolerant, self-healing storage system**.
+
+---
+
+### 🔑 **3. Storage Architecture**
+
+* **RDS**:
+
+  * Storage is tightly coupled with the instance.
+  * Scaling storage or IOPS often requires downtime or instance modification.
+* **Aurora**:
+
+  * **Decoupled storage**: Automatically scales up to 128 TB.
+  * Storage is shared across read replicas.
+
+---
+
+### 🔑 **4. High Availability & Replication**
+
+* **RDS**:
+
+  * Supports **Multi-AZ deployments** for HA.
+  * **Read replicas** are separate, and typically only for scaling reads.
+* **Aurora**:
+
+  * **High availability is built-in**.
+  * **Up to 15 low-latency read replicas**.
+  * Automatic failover is much faster (\~30 seconds or less).
+
+---
+
+### 🔑 **5. Cost**
+
+* **RDS**:
+
+  * Cheaper for small to medium workloads.
+  * Pay for the database instance and storage separately.
+* **Aurora**:
+
+  * More expensive per GB and per vCPU.
+  * Better value for high-performance, highly available workloads.
+
+---
+
+### 🔑 **6. Serverless Support**
+
+* **RDS**:
+
+  * Limited to RDS Aurora (MySQL/PostgreSQL) with **Aurora Serverless** for auto-scaling.
+* **Aurora**:
+
+  * Aurora Serverless v2 offers **instant autoscaling** based on workload.
+  * Ideal for unpredictable or variable workloads.
+
+---
+
+### 🔑 **7. Backup and Restore**
+
+* Both support:
+
+  * Automated backups
+  * Manual snapshots
+  * Point-in-time recovery
+
+However, **Aurora backups are continuous and don’t impact performance** due to its architecture.
+
+---
+
+### Summary Table:
+
+| Feature           | RDS                             | Aurora                            |
+| ----------------- | ------------------------------- | --------------------------------- |
+| Engine Support    | MySQL, PostgreSQL, Oracle, etc. | Aurora MySQL, Aurora PostgreSQL   |
+| Performance       | Standard                        | Up to 5x (MySQL), 3x (PostgreSQL) |
+| Storage Scaling   | Manual/instance-bound           | Auto up to 128 TB                 |
+| Read Replicas     | Limited                         | Up to 15, shared storage          |
+| High Availability | Multi-AZ                        | Built-in, fast failover           |
+| Serverless        | Limited (Aurora only)           | Aurora Serverless v2              |
+| Cost              | Lower                           | Higher (but better performance)   |
+
+---
+
 ## Database Migration Service (DMS)
 
 > *The Database Migration Service (DMS) is a managed service which allows for 0 data loss, low or 0 downtime migrations between 2 database endpoints.*
@@ -4182,7 +4295,74 @@ Writes to replica after primary write is complete. ***Can*** be accessed for rea
 - Vault **Lock** - write-once, read-many (**WORM)**, 72 hour cool off, then even AWS can’t delete
 - **On-demand** - manual backups created
 - **PITR**  - Point in time recovery
+---
+### 🔍 **Core Features of AWS Backup**
 
+| Feature                    | Description                                                                 |
+| -------------------------- | --------------------------------------------------------------------------- |
+| **Centralized Management** | Unified dashboard to manage backups across AWS services.                    |
+| **Policy-Based Backups**   | Automate backup schedules via backup plans and lifecycle policies.          |
+| **Cross-Region Backup**    | Automatically copy backups to other AWS Regions for disaster recovery.      |
+| **Cross-Account Backup**   | Backup and restore across AWS accounts using AWS Organizations.             |
+| **Lifecycle Management**   | Transition backups from warm to cold storage (e.g., Glacier) automatically. |
+| **Backup Vaults**          | Logical container for backups with encryption and access control.           |
+| **Compliance Monitoring**  | Track backup activity using AWS Backup Audit Manager.                       |
+
+---
+
+### 🧱 **Supported AWS Services**
+
+* **Amazon EC2** (via EBS volumes)
+* **Amazon RDS** (including Aurora)
+* **Amazon DynamoDB**
+* **Amazon EFS**
+* **Amazon FSx** (Windows, Lustre, NetApp ONTAP)
+* **AWS Storage Gateway**
+* **Amazon S3** (via AWS Backup integration; limited functionality)
+* **VMware workloads** (via AWS Backup Gateway)
+
+---
+
+### 🔐 **Security & Compliance**
+
+* **Encryption**: Supports KMS-managed keys.
+* **Access Control**: Integrated with AWS IAM for fine-grained permissions.
+* **Audit Logging**: Logs activities to **AWS CloudTrail**.
+* **Compliance Reports**: Generate backup activity reports for audits.
+
+---
+
+### 📅 **Backup Plans & Lifecycle**
+
+A backup plan defines:
+
+* **Backup frequency**: (hourly, daily, weekly, monthly)
+* **Retention period**: (e.g., 35 days warm, then 1 year cold)
+* **Resource assignment**: Tag or explicitly assign resources to plans.
+* **Copy actions**: Automatically replicate backups to other regions/accounts.
+
+---
+
+### 💲 **Pricing Overview**
+
+* Charges are based on:
+
+  * Amount of data backed up
+  * Duration stored (standard or cold storage)
+  * Cross-region data transfer
+  * Restore operations
+* Pricing varies by **resource type and storage tier**.
+
+---
+
+### ✅ **Use Cases**
+
+* Disaster recovery and cross-region backup
+* Long-term retention for compliance (HIPAA, GDPR, SOC)
+* Centralized backup strategy across AWS workloads
+* Secure backup automation with auditability
+
+---
 
 
 # ⚖️ High Availability (HA) & Scaling
