@@ -4974,6 +4974,102 @@ While Lambda itself is a single service, it can be **invoked in different ways**
 ### EventBridge / CloudWatch Events
 
 ![Untitled](img/Untitled%20133.png)
+---
+**Amazon EventBridge** is a **serverless event bus service** that helps you build **event-driven applications** by connecting your applications with data from your own services, AWS services, or SaaS applications — **without writing custom polling or glue code**.
+
+---
+
+## 🚦 **Key Concepts**
+
+| Concept             | Description                                                                    |
+| ------------------- | ------------------------------------------------------------------------------ |
+| **Event Bus**       | A pipeline for events. Default, custom, and partner event buses are available. |
+| **Event**           | A JSON object that represents a change in state (e.g., "order placed").        |
+| **Rule**            | Defines which events to match and where to send them (targets).                |
+| **Target**          | The destination for matched events (e.g., Lambda, SQS, Step Functions).        |
+| **Schema Registry** | Stores event structure metadata for easier integration and discovery.          |
+
+---
+
+## 📦 **Event Structure Example**
+
+```json
+{
+  "source": "myapp.orders",
+  "detail-type": "OrderCreated",
+  "detail": {
+    "orderId": "12345",
+    "amount": 99.99
+  }
+}
+```
+
+---
+
+## 🛠️ **Common Event Sources**
+
+* AWS services (e.g., EC2 state change, S3 object created, CodePipeline updates)
+* Your own custom events (using `PutEvents`)
+* SaaS partners (e.g., Datadog, Zendesk, Segment)
+
+---
+
+## 🎯 **Target Examples**
+
+* AWS Lambda
+* Step Functions
+* SNS / SQS
+* Kinesis Data Streams
+* EventBridge Pipes (for advanced filtering and enrichment)
+* EC2 Run Command
+
+---
+
+## 🔄 **Use Case: E-commerce Order Events**
+
+### **Flow:**
+
+1. Order is placed → Custom app emits an event to EventBridge.
+2. EventBridge Rule matches `OrderPlaced` events.
+3. Target: Sends event to a Lambda that starts order fulfillment.
+
+---
+
+## ✨ **Benefits**
+
+* **Loose coupling**: Services don't need to know about each other.
+* **Scalable and serverless**: Handles millions of events with automatic scaling.
+* **Flexible routing**: Send the same event to multiple targets.
+* **Built-in filtering**: Rules can match on exact values or use pattern matching.
+* **Replay and Archive (optional)**: You can archive events and replay them later.
+
+---
+
+## 💰 **Pricing**
+
+* Charged based on the number of events published and matched.
+* Additional cost for **archive** and **event replay** features.
+
+---
+
+### 📌 **Example Rule (in JSON)**
+
+```json
+{
+  "EventPattern": {
+    "source": ["myapp.orders"],
+    "detail-type": ["OrderCreated"]
+  },
+  "Targets": [
+    {
+      "Arn": "arn:aws:lambda:us-east-1:123456789012:function:StartFulfillment",
+      "Id": "StartFulfillmentLambda"
+    }
+  ]
+}
+```
+
+---
 
 ## Serverless Architecture
 
