@@ -4426,6 +4426,8 @@ Equally distribute load to instances across AZs
 
 ![Untitled](img/Untitled%20108.png)
 
+![alt text](img/clb.png)
+
 ### Key Points
 
 - ELB is a **DNS A** Records pointing at **1+** Nodes per AZ
@@ -4493,6 +4495,66 @@ Equally distribute load to instances across AZs
 - Protocols not HTTP or HTTPS? NLB
 - Private link? NLB
 - Otherwise? **ALB!**
+---
+**Elastic Load Balancers (ELB)** in AWS automatically distribute incoming application traffic across multiple targets (like EC2 instances, containers, IP addresses), improving **availability**, **fault tolerance**, and **scalability**.
+
+---
+
+### 🧭 **Types of Elastic Load Balancers**
+
+| Load Balancer Type         | Best For                                   | Protocols Supported   |
+| -------------------------- | ------------------------------------------ | --------------------- |
+| **Application (ALB)**      | HTTP/HTTPS traffic at Layer 7              | HTTP, HTTPS           |
+| **Network (NLB)**          | High-performance TCP/UDP traffic at L4     | TCP, UDP, TLS         |
+| **Gateway Load Balancer**  | Third-party virtual appliances (firewalls) | GENEVE (port 6081)    |
+| **Classic (CLB)** (legacy) | Basic L4/L7 load balancing (older apps)    | HTTP, HTTPS, TCP, SSL |
+
+---
+
+### 🔍 **Key Differences**
+
+| Feature             | ALB                         | NLB                                  | Gateway LB                      |
+| ------------------- | --------------------------- | ------------------------------------ | ------------------------------- |
+| **OSI Layer**       | Layer 7 (Application)       | Layer 4 (Transport)                  | Layer 3/4 (Network)             |
+| **Target Types**    | EC2, IP, Lambda, containers | EC2, IP, containers                  | EC2 (virtual appliances)        |
+| **TLS Termination** | Yes                         | Yes                                  | No                              |
+| **Sticky Sessions** | Yes (based on cookies)      | Yes (based on source IP)             | No                              |
+| **Health Checks**   | HTTP/HTTPS                  | TCP/HTTP/HTTPS                       | TCP                             |
+| **Performance**     | Good for web apps           | Extremely low latency (millions TPS) | Routing through appliances      |
+| **Use Case**        | Microservices, web apps     | Gaming, IoT, real-time systems       | Security inspection & filtering |
+
+---
+
+### 🔐 **Security and Integration**
+
+* Integrated with **AWS Certificate Manager (ACM)** for HTTPS/TLS.
+* Works with **AWS WAF** (only ALB supports WAF).
+* Supports **Security Groups**, **Access Logs**, and **CloudWatch Metrics**.
+* Load balancers are placed in **public subnets**; targets can be in private ones.
+
+---
+
+### 💲 **Pricing Model**
+
+* **Charged per hour** or **per Load Balancer Capacity Unit (LCU)**.
+* **Data processed (GBs)** and **number of new connections/sec** affect pricing.
+* NLBs tend to be more cost-effective for very high throughput and low latency needs.
+
+---
+
+### 🚀 **Typical Use Cases**
+
+* **ALB**: Web and API routing with path- or host-based routing rules.
+* **NLB**: High-speed backend apps (e.g., game servers, payment gateways).
+* **Gateway LB**: Security tools (firewalls, intrusion detection) in the network path.
+
+---
+![alt text](img/image-1.png)
+---
+![alt text](img/image-2.png)
+---
+![alt text](img/image-3.png)
+---
 
 ## Launch Configuration and Templates
 
@@ -4504,7 +4566,7 @@ Equally distribute load to instances across AZs
 > *The AMI, the Instance Type, the networking & security, the key pair to use, the user data to inject and IAM Role to attach.*
 > 
 
-### LC and LT Key Concepts
+### LC (Launch Configuration) and LT (Lanch Templates) Key Concepts
 
 - Allow you to define the configuration of an EC2 instance **in advance**
 - AMI, Instance Type, Storage & Key pair
@@ -4598,7 +4660,7 @@ Equally distribute load to instances across AZs
 - Target tracking
     - Define ideal value, e.g. 50% CPU usage
     - Add/remove to stay at ideal value
-- Scaling based on **SQS - ApprocimateNumberOfMessagesVisible**
+- Scaling based on **SQS - ApproximateNumberOfMessagesVisible**
 
 ### ASG - Simple Scaling
 
