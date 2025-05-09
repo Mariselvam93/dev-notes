@@ -1049,6 +1049,26 @@ CloudWatch Logs is a public service and can also be utilized in an on-premises e
 - **NOT REALTIME** - There is a delay
     - Typical 15 minutes ❗
 
+---
+
+| **Feature**              | **AWS CloudTrail**                                           | **Amazon CloudWatch**                                        |
+| ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Purpose**              | Governance, compliance, and auditing of AWS account activity | Monitoring performance, operational health, and metrics      |
+| **Data Type**            | Logs of API calls (who did what, when, and where)            | Metrics, logs, events, and alarms                            |
+| **Source**               | AWS Management Console, CLI, SDKs, API calls                 | AWS services (e.g., EC2, Lambda), custom apps, OS-level logs |
+| **Use Case**             | Security audits, resource change tracking, forensic analysis | Infrastructure monitoring, alerting, troubleshooting         |
+| **Event Granularity**    | API call-level (e.g., `StartInstances`, `CreateBucket`)      | Time-series metrics (e.g., CPU utilization, memory usage)    |
+| **Storage**              | Stored in S3 (can be encrypted, analyzed in Athena)          | Metrics in CloudWatch; Logs stored in CloudWatch Logs        |
+| **Real-time Capability** | Near real-time logging                                       | Real-time metrics and log streaming                          |
+| **Integration**          | AWS Config, CloudWatch Logs, Lambda, SIEM tools              | Lambda, SNS, Auto Scaling, dashboards                        |
+| **Retention**            | Controlled via S3 lifecycle policies                         | Metrics: 15 months (free tier), Logs: configurable           |
+| **Cost**                 | Based on number and volume of events logged                  | Based on number of metrics, dashboards, alarms, logs         |
+---
+### Summary:
+
+* **CloudTrail** tracks **"who did what"** in your AWS account.
+* **CloudWatch** monitors **"how well it's running"**.
+---
 ## AWS Control Tower
 
 > *AWS Control Tower offers a straightforward way to set up and govern an AWS multi-account environment, following prescriptive best practices. AWS Control Tower orchestrates the capabilities of several other [AWS services](https://docs.aws.amazon.com/controltower/latest/userguide/integrated-services.html), including AWS Organizations, AWS Service Catalog, and AWS IAM Identity Center (successor to AWS Single Sign-On), to build a landing zone in less than an hour. Resources are set up and managed on your behalf.
@@ -2332,6 +2352,57 @@ KMS Keys - aws/ebs or customer managed
 - Public DNS = **private IP in VPC**
     - Public IP everywhere else
 
+---
+
+### 🔧 **What is an ENI?**
+
+An **Elastic Network Interface (ENI)** is like a **virtual network card** in AWS. Just like a physical network card in a computer connects it to a network, an ENI connects an **EC2 instance** (a virtual server) to a **VPC** (a private network in AWS).
+
+---
+
+### 📦 **What does an ENI contain?**
+
+An ENI can include:
+
+* **Private IP address** – the main way your instance communicates inside the VPC.
+* **Elastic IP** – a public IP that doesn’t change, which can be assigned to the ENI.
+* **Security groups** – firewall rules to control what traffic can reach your instance.
+* **MAC address** – a unique identifier like in physical network cards.
+* **IPv6 addresses** – optional if your VPC supports IPv6.
+
+---
+
+### 🧩 **Why use ENIs?**
+
+1. **High Availability / Failover**
+
+   * If an EC2 instance fails, you can **move the ENI** to another instance — so the IP, MAC, and security groups stay the same.
+
+2. **Multiple Network Interfaces**
+
+   * Attach **more than one ENI** to an instance to **separate traffic** (e.g., one for public-facing traffic, one for internal use).
+
+3. **Traffic Monitoring / Security**
+
+   * You can **monitor network traffic** or create **security appliances** by attaching ENIs to special instances.
+
+4. **Multiple IPs on one EC2**
+
+   * A single ENI can have **multiple private IPs**, which is useful for hosting multiple services.
+
+---
+
+### 🧪 Example Scenario
+
+You have a web app and a database. You create:
+
+* One ENI with a public IP for your **web server** (to serve users).
+* One ENI without a public IP for your **database** (internal access only).
+
+---
+
+
+![alt text](img/eni.png)
 ## DEMO: Installation of Wordpress on EC2
 
 ```bash
@@ -2414,7 +2485,35 @@ sudo rm /tmp/db.setup
 - An AMI **can’t be edited**. Launch instance, update configuration and *make a new AMI*
 - Can be copied **between regions** (includes its snapshots)
 - Remember permissions. **Default = your account**
+---
+**Amazon Machine Images (AMIs)** are pre-configured templates used to launch virtual machines (called instances) in **Amazon EC2**. Each AMI includes:
 
+* A **root volume** with an operating system (e.g., Amazon Linux, Ubuntu, Windows).
+* **Launch permissions** that control who can use the AMI.
+* **Block device mappings** for additional storage volumes.
+
+### Key Concepts
+
+* **Public AMIs**: Provided by AWS or community members. Freely available for anyone.
+* **Private AMIs**: Created and visible only to your AWS account or shared with specific AWS accounts.
+* **Marketplace AMIs**: Provided by third-party vendors. Often come with software pre-installed (e.g., antivirus, database servers).
+
+### AMI Usage
+
+When launching an EC2 instance:
+
+1. Select an AMI (e.g., `Amazon Linux 2023`, `Ubuntu 22.04`).
+2. Choose instance type, storage, networking, and other settings.
+3. The instance boots with the OS and configuration defined in the AMI.
+
+### Creating Your Own AMI
+
+You can create custom AMIs from an existing EC2 instance:
+
+* Install your software and configure the instance.
+* Stop the instance and create an image from the AWS console or CLI.
+* Use that image to launch identical configured instances later.
+---
 ## DEMO: A4L AMI
 
 ```bash
@@ -2593,6 +2692,19 @@ Relogin
 - Resource usage consumes savings plan commitment at the reduced savings plan rate
 - Beyond your commitment **on-demand is used**
 
+---
+Here’s a summary of the **Amazon EC2 Purchase Options** in a table format:
+
+| **Purchase Option**         | **Description**                                                                                                                     | **Billing**                             | **Use Case**                                                | **Commitment**       |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------- | -------------------- |
+| **On-Demand**               | Pay for compute capacity by the hour or second (depending on instance type) with no long-term commitments.                          | Per second or hour                      | Short-term, unpredictable workloads or development/testing  | None                 |
+| **Reserved Instances (RI)** | Reserve capacity for 1 or 3 years in exchange for significant discount over On-Demand pricing.                                      | Upfront, Partial Upfront, or No Upfront | Steady-state workloads                                      | 1 or 3 years         |
+| **Savings Plans**           | Flexible pricing model offering lower prices compared to On-Demand in exchange for usage commitment (e.g., \$/hr) for 1 or 3 years. | Hourly commitment                       | Flexible workloads with known usage patterns                | 1 or 3 years         |
+| **Spot Instances**          | Purchase unused EC2 capacity at up to 90% discount. Can be interrupted by AWS with 2-minute notice.                                 | Per second                              | Fault-tolerant, flexible workloads like batch jobs or CI/CD | None                 |
+| **Dedicated Hosts**         | Physical servers with EC2 instance capacity fully dedicated to you. Helps meet compliance requirements.                             | Per host                                | Software licensing or regulatory requirements               | Optional reservation |
+| **Dedicated Instances**     | EC2 instances running on hardware dedicated to a single customer.                                                                   | Per instance                            | Workloads requiring physical isolation                      | None                 |
+| **Capacity Reservations**   | Reserve capacity in a specific Availability Zone. Useful for ensuring resource availability.                                        | Per instance (On-Demand or RI pricing)  | High-priority workloads requiring guaranteed capacity       | Optional term        |
+---
 ## Instance Status Checks & Auto Recovery
 
 > *With instance status monitoring, you can quickly determine whether Amazon EC2 has detected any problems that might prevent your instances from running applications. Amazon EC2 performs automated checks on every running EC2 instance to identify hardware and software issues. You can view the results of these status checks to identify specific and detectable problems.*
@@ -2676,7 +2788,36 @@ Adding or removing resources to a system*
 - **NOT AUTHENTICATED** or **ENCRYPTED**
     - Treat metadata as something that can and will be exposed
 
+---
+| **Metadata Path**                       | **Description**                                   | **Example Command**                                                        |   |
+| --------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------- | - |
+| `/latest/meta-data/`                    | Root directory for metadata categories.           | `curl http://169.254.169.254/latest/meta-data/`                            |   |
+| `/ami-id`                               | AMI ID used to launch the instance.               | `curl http://169.254.169.254/latest/meta-data/ami-id`                      |   |
+| `/instance-id`                          | The unique ID of the instance.                    | `curl http://169.254.169.254/latest/meta-data/instance-id`                 |   |
+| `/instance-type`                        | The type of the instance (e.g., t3.micro).        | `curl http://169.254.169.254/latest/meta-data/instance-type`               |   |
+| `/local-ipv4`                           | Private IPv4 address of the instance.             | `curl http://169.254.169.254/latest/meta-data/local-ipv4`                  |   |
+| `/public-ipv4`                          | Public IPv4 address (if assigned).                | `curl http://169.254.169.254/latest/meta-data/public-ipv4`                 |   |
+| `/hostname`                             | The hostname of the instance.                     | `curl http://169.254.169.254/latest/meta-data/hostname`                    |   |
+| `/security-groups`                      | Security groups associated with the instance.     | `curl http://169.254.169.254/latest/meta-data/security-groups`             |   |
+| `/iam/info`                             | Info about the IAM role attached to the instance. | `curl http://169.254.169.254/latest/meta-data/iam/info`                    |   |
+| `/iam/security-credentials/<role-name>` | Temporary security credentials for IAM role.      | `curl http://169.254.169.254/latest/meta-data/iam/security-credentials/`   |   |
+| `/placement/availability-zone`          | Availability zone of the instance.                | `curl http://169.254.169.254/latest/meta-data/placement/availability-zone` |   |
+| `/mac`                                  | MAC address of the instance.                      | `curl http://169.254.169.254/latest/meta-data/mac`                         |   |
+---
 
+> **Base URL**: `http://169.254.169.254/latest/meta-data/`
+
+For **IMDSv2 (Instance Metadata Service Version 2)**, a token is required:
+
+```bash
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/instance-id
+```
+
+![alt text](img/ec2_metadata.png)
 
 # 🐳 Containers & ECS
 
