@@ -3190,6 +3190,54 @@ aws ssm get-parameters-by-path --path /my-app/ --with-decryption # decrypt encry
 - Great for topology aware applications
     - HDFS, HBase and Cassandra
 - Contain the impact of failure to part of an application
+---
+AWS **Placement Groups** are a feature that influence how EC2 instances are physically placed on AWS infrastructure to meet workload needs for **low latency**, **high throughput**, or **high availability**.
+
+Here’s a comparison of the **three types of Placement Groups**:
+
+---
+
+### 📊 **Placement Group Types Comparison Table**
+
+| **Placement Group Type** | **Purpose**       | **Placement Strategy**                                                       | **Ideal For**                                                      | **Limitations**                                                              |
+| ------------------------ | ----------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **Cluster**              | High performance  | Instances are placed close together in a single AZ                           | HPC, Big Data, low-latency apps, tightly coupled nodes             | Limited to single AZ, risk of simultaneous failures                          |
+| **Spread**               | High availability | Instances are placed on distinct hardware                                    | Critical applications needing separation (e.g., database replicas) | Max 7 instances per AZ (per group)                                           |
+| **Partition**            | Fault isolation   | Instances are divided into logical partitions, each isolated from the others | Large-scale distributed systems like Hadoop, Cassandra             | Can have multiple partitions, but instances in same partition share hardware |
+
+---
+
+### 📌 **Key Details**
+
+#### 1. **Cluster Placement Group**
+
+* **Best for:** High-speed network communications (10 Gbps+).
+* **Network Benefit:** Enhanced throughput and low latency.
+* **Downside:** If the group is full, instance launches may fail.
+
+#### 2. **Spread Placement Group**
+
+* **Best for:** Applications where each instance must be isolated from hardware failures.
+* **Instance Limit:** Up to 7 running instances per AZ per spread group.
+* **Downside:** Limited scalability, but excellent fault tolerance.
+
+#### 3. **Partition Placement Group**
+
+* **Best for:** Large-scale, distributed and replicated workloads.
+* **Design:** Each partition uses distinct racks (power/networking).
+* **Max Partitions:** Up to 7 in one AZ.
+* **Downside:** More complex architecture.
+
+---
+
+### ✅ Use Case Summary:
+
+| **Use Case**                              | **Recommended Type** |
+| ----------------------------------------- | -------------------- |
+| Low latency / High throughput             | **Cluster**          |
+| Fault isolation (max 7 instances per AZ)  | **Spread**           |
+| Fault-tolerant, scalable distributed apps | **Partition**        |
+---
 
 ## EC2 Dedicated Hosts
 
@@ -3210,12 +3258,74 @@ aws ssm get-parameters-by-path --path /my-app/ --with-decryption # decrypt encry
 
 ![Untitled](img/Untitled%2077.png)
 
-### Limitations & Features
+---
+The key difference between an **EC2 Dedicated Host** and an **EC2 Dedicated Instance** in AWS lies in the level of physical isolation, visibility, and control over the underlying hardware:
 
-- **AMI Limits** - RHEL, SUSE Linux, and Windows AMIs aren’t supported
-- **Amazon RDS** instances are not supported
-- **Placement groups** are not supported for dedicated hosts
-- Hosts can be shared with other ORG Account… RAM
+---
+
+### 🔹 EC2 **Dedicated Host**
+
+| Feature                 | Description                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Isolation**           | Provides physical server *dedicated exclusively* to your use. No other AWS customers share it.         |
+| **Hardware Visibility** | Full visibility and control over the host hardware (e.g., sockets, cores).                             |
+| **Licensing**           | Supports BYOL (Bring Your Own License) for Windows Server, SQL Server, etc., as you control the host.  |
+| **Host Affinity**       | You can control which instances run on which host using host affinity policies.                        |
+| **Pricing**             | More expensive; billed per host, not per instance.                                                     |
+| **Use Case**            | Ideal when you need compliance, specific licensing requirements, or visibility into the physical host. |
+
+---
+
+### 🔹 EC2 **Dedicated Instance**
+
+| Feature                 | Description                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Isolation**           | Runs on hardware *dedicated to you*, but you don’t control the host itself. Other dedicated instances from your account may share the host. |
+| **Hardware Visibility** | No access to the underlying host information (e.g., socket or core mappings).                                                               |
+| **Licensing**           | Limited BYOL support (e.g., no Windows BYOL) because you don’t manage the host.                                                             |
+| **Host Affinity**       | Not available — AWS handles instance placement.                                                                                             |
+| **Pricing**             | Billed per instance, with a premium over shared tenancy.                                                                                    |
+| **Use Case**            | Suitable when you need isolated hardware for compliance, but don’t require full control.                                                    |
+
+---
+
+### Summary
+
+| Feature       | Dedicated Host                      | Dedicated Instance              |
+| ------------- | ----------------------------------- | ------------------------------- |
+| **Control**   | Full control over physical host     | No control over physical host   |
+| **Isolation** | Dedicated physical server           | Dedicated hardware for instance |
+| **Licensing** | Full BYOL support                   | Limited BYOL                    |
+| **Pricing**   | Per host                            | Per instance                    |
+| **Best for**  | Compliance, licensing, and affinity | Simpler isolation needs         |
+---
+
+This is a summary of **limitations and features** specific to **AWS EC2 Dedicated Hosts**. 
+---
+
+### 🔒 **Limitations:**
+
+1. **AMI Limits**
+
+   * **RHEL, SUSE Linux, and Windows AMIs are not supported**
+     → Certain marketplace or licensed AMIs (especially with bundled OS licensing) are restricted from running on Dedicated Hosts due to licensing or compliance constraints.
+
+2. **Amazon RDS Instances Are Not Supported**
+   → You cannot deploy **Amazon RDS** databases (like MySQL, PostgreSQL, SQL Server, etc.) on Dedicated Hosts. RDS manages its own infrastructure.
+
+3. **Placement Groups Are Not Supported**
+   → You cannot use **placement groups** (which influence how instances are placed on underlying hardware to optimize network performance or availability) with Dedicated Hosts.
+
+---
+
+### ⚙️ **Features:**
+
+4. **Hosts Can Be Shared With Other ORG Accounts – RAM**
+   → You can **share dedicated hosts across AWS accounts within the same AWS Organization** using **Resource Access Manager (RAM)**. This enables efficient use of reserved capacity across multiple accounts.
+
+
+
+---
 
 ## Enhanced Networking & EBS Optimized
 
@@ -3246,10 +3356,93 @@ aws ssm get-parameters-by-path --path /my-app/ --with-decryption # decrypt encry
 - Most instances **support** and have **enabled by default**
     - Some support, but enabling costs extra
 
-
+---
 
 # 🛣️ Route 53 - Global DNS
 
+Amazon Route 53 (R53) is a scalable and highly available Domain Name System (DNS) web service provided by AWS. It is designed to route user requests to endpoints like AWS resources (e.g., EC2 instances, load balancers) or external servers. Here's a breakdown of the key fundamentals of Route 53:
+
+### 1. **DNS (Domain Name System)**
+
+* DNS is a system that translates human-readable domain names (e.g., `example.com`) into IP addresses (e.g., `192.0.2.1`) that computers use to identify each other on the network.
+* When a user enters a domain name into a browser, the browser sends a DNS query to resolve that domain name to an IP address.
+
+### 2. **Record Types in Route 53**
+
+Route 53 supports different types of DNS records, each serving a specific purpose:
+
+* **A Record (Address Record)**: Maps a domain to an IPv4 address (e.g., `example.com` → `192.0.2.1`).
+* **AAAA Record**: Maps a domain to an IPv6 address (e.g., `example.com` → `2001:0db8:85a3:0000:0000:8a2e:0370:7334`).
+* **CNAME Record (Canonical Name Record)**: Points one domain to another (e.g., `www.example.com` → `example.com`). CNAMEs can't be used on the root domain (e.g., `example.com`).
+* **MX Record (Mail Exchange Record)**: Defines mail servers for email routing (e.g., `example.com` → mail servers like `mail.example.com`).
+* **TXT Record (Text Record)**: Used to store arbitrary text, often for verification purposes (e.g., SPF, DKIM, etc.).
+* **NS Record (Name Server Record)**: Defines the authoritative name servers for a domain (e.g., `example.com` → `ns1.exampledns.com`, `ns2.exampledns.com`).
+* **PTR Record (Pointer Record)**: Used for reverse DNS lookups. It maps an IP address back to a domain name.
+* **SRV Record (Service Record)**: Specifies a service’s location, such as for VoIP, XMPP, etc.
+* **SOA Record (Start of Authority Record)**: Specifies the authoritative information about a domain, including the primary name server and email address for domain administration.
+
+### 3. **Hosted Zones**
+
+* A **hosted zone** is a container for records in a specific domain (e.g., `example.com`).
+* You create a hosted zone in Route 53 when you want to manage DNS records for a domain.
+* There are two types of hosted zones:
+
+  * **Public Hosted Zone**: Manages DNS records for a publicly accessible domain.
+  * **Private Hosted Zone**: Manages DNS records for a domain that is only accessible from within an Amazon VPC (Virtual Private Cloud).
+
+### 4. **Name Servers (NS)**
+
+* Name servers are responsible for resolving domain names into IP addresses.
+* When you create a hosted zone in Route 53, AWS provides a set of name servers, which you can configure with your domain registrar.
+* If you're using Route 53 to manage DNS for your domain, you'll point the registrar's NS records to Route 53's name servers.
+
+### 5. **Routing Policies**
+
+Route 53 offers several routing policies to control how DNS queries are answered:
+
+* **Simple Routing**: Standard, one-to-one mapping between a domain and its resources.
+* **Weighted Routing**: Distributes traffic based on a specified weight (e.g., 70% of traffic goes to one server, 30% to another).
+* **Latency Routing**: Routes traffic based on the lowest latency (fastest response time) between the user and AWS resources.
+* **Failover Routing**: Routes traffic to a backup resource in case the primary resource is unhealthy.
+* **Geolocation Routing**: Routes traffic based on the geographic location of the requester.
+* **Geoproximity Routing**: Routes traffic to the closest resource, weighted by proximity.
+* **Multivalue Answer Routing**: Returns multiple records in response to a query, enabling clients to pick from multiple IP addresses.
+
+### 6. **Health Checks**
+
+* **Health Checks** in Route 53 are used to monitor the health of resources such as web servers, load balancers, or other endpoints.
+* If a health check fails, Route 53 can route traffic to a backup resource based on the routing policy.
+
+### 7. **TTL (Time to Live)**
+
+* TTL defines how long a DNS record should be cached by resolvers before they query Route 53 again for an updated value.
+* A lower TTL allows changes to DNS records to propagate quickly, but can result in higher DNS query traffic.
+
+### 8. **DNS Resolution**
+
+* When a client (e.g., a browser) makes a DNS query, it will go through a series of steps to resolve the domain name:
+
+  * First, the resolver checks its cache for the DNS record.
+  * If not found, it queries the root DNS servers, then the TLD (Top-Level Domain) servers (e.g., `.com`), and finally the authoritative name servers for the domain.
+
+### 9. **Domain Registration**
+
+* Route 53 also offers domain registration services. You can buy and manage domain names directly from AWS.
+* Once you register a domain, you can set up the DNS records within Route 53.
+
+### 10. **Route 53 for AWS Integration**
+
+* Route 53 can be tightly integrated with AWS services, allowing you to route traffic to EC2 instances, load balancers, S3 buckets, CloudFront distributions, and more.
+
+### Key Use Cases for Route 53:
+
+* **Website Hosting**: Point a domain to an EC2 instance, S3 bucket, or load balancer.
+* **Content Delivery**: Use Route 53 with CloudFront to route traffic to the nearest edge location.
+* **Failover and High Availability**: Ensure uptime by routing traffic to healthy endpoints.
+* **Traffic Management**: Control traffic distribution across multiple resources with routing policies.
+
+
+---
 ## R53 Public Hosted Zones
 
 > *A public hosted zone is a container that holds information about how you want to route traffic on the internet for a specific domain which is accessible from the public internet*
@@ -3361,6 +3554,57 @@ Use an active-passive failover configuration when you want a primary resource or
 
 **Configuring an Active-Active Failover with One Primary and One Secondary Resource** is incorrect because you cannot set up an Active-Active Failover with One Primary and One Secondary Resource. Remember that an Active-Active Failover uses all available resources all the time without a primary nor a secondary resource.
 
+---
+In Route 53 and high availability architectures, **Active-Active** and **Active-Passive** are two common failover strategies. Here's how they compare:
+
+---
+
+### ⚖️ Active-Active vs. Active-Passive Failover
+
+| **Aspect**               | **Active-Active**                                                                | **Active-Passive**                                                  |
+| ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **Definition**           | Multiple resources (all active) serve traffic simultaneously.                    | Only the primary resource handles traffic; secondary is on standby. |
+| **Routing Policy**       | Use **Weighted**, **Latency-based**, or **Multi-Value Answer** routing policies. | Use **Failover routing policy** with health checks.                 |
+| **Traffic Distribution** | Traffic is distributed across all healthy resources.                             | All traffic goes to the primary unless it fails.                    |
+| **Failover Mechanism**   | If one fails, traffic shifts to remaining healthy ones automatically.            | If primary fails (health check fails), traffic shifts to secondary. |
+| **Cost**                 | Higher (all resources are running and serving traffic).                          | Lower (secondary resource may not be running continuously).         |
+| **Use Case**             | Load balancing, high availability with better resource utilization.              | Disaster recovery or standby setup to ensure availability.          |
+
+---
+
+### 🧩 Examples:
+
+* **Active-Active**: Web servers in **us-east-1** and **eu-west-1**, using **Latency-based** routing.
+* **Active-Passive**: A production web app in **us-east-1**, with a backup in **us-west-2** using **Failover routing**.
+
+![alt text](img/R53-Failover.png)
+---
+Amazon **Route 53 (R53)** is a **scalable and highly available Domain Name System (DNS)** web service provided by AWS. It translates domain names into IP addresses to route end-user requests to internet applications hosted in AWS or elsewhere. R53 also offers **domain registration**, **health checking**, and **routing policies** to control traffic flow based on different business requirements.
+
+---
+
+### 🔀 Route 53 Routing Policies (Table Format)
+
+| **Routing Policy**                    | **Description**                                                                                    | **Use Case**                                                                            | **Supports Health Checks** |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------- |
+| **Simple**                            | Basic routing with one record per name and type.                                                   | Use when you have only one resource (e.g., a single web server) for a domain.           | ❌ No                       |
+| **Weighted**                          | Routes traffic based on weights assigned to each record.                                           | Distribute traffic between multiple resources (e.g., 70% to server A, 30% to server B). | ✅ Yes                      |
+| **Latency-based**                     | Routes to the region with the lowest network latency for the user.                                 | Improve user experience by minimizing latency (e.g., choose fastest AWS region).        | ✅ Yes                      |
+| **Failover**                          | Primary and secondary setup, where traffic is routed to a secondary resource if the primary fails. | Active-passive failover systems.                                                        | ✅ Yes                      |
+| **Geolocation**                       | Routes based on the user’s geographic location (e.g., country, continent).                         | Serve localized content (e.g., EU users to EU servers).                                 | ✅ Yes                      |
+| **Geo-proximity (Traffic Flow only)** | Routes traffic based on the geographic location and weight (bias) of AWS resources.                | Route based on proximity and shift traffic using bias settings (requires Traffic Flow). | ✅ Yes                      |
+| **Multi-Value Answer**                | Returns multiple IP addresses and performs simple health checks.                                   | Basic load balancing without using ELB (up to 8 healthy records returned randomly).     | ✅ Yes                      |
+
+---
+
+![alt text](img/R53-RoutingPolicies.png)
+
+### 📝 Notes:
+
+* **Health checks** can monitor endpoints and automatically reroute traffic if a failure is detected (except in Simple routing).
+* **Traffic Flow** is a visual editor in Route 53 that allows combining routing policies (e.g., geo-proximity with failover).
+---
+
 ## Routing Policy 1: Simple Routing
 
 > *Simple routing lets you configure standard DNS records, with no special Route 53 routing such as weighted or latency. With simple routing, you typically route traffic to a single resource, for example, to a web server for your website.*
@@ -3467,19 +3711,17 @@ Use an active-passive failover configuration when you want a primary resource or
 
 💡 **CAP Theorem: Consistency, Availability, Partition Tolerant - *Choose two***
 
-**ACID: 
-- Atomic:** All or nothing
-**- Consistent:** From one valid state to another
-**- Isolated:** Transactions don’t interfere with each other
-**- Durable:** Stored on non-volatile memory. Resilient to crash.
+**ACID:** 
+- **Atomic:** All or nothing
+- **Consistent:** From one valid state to another
+- **Isolated:** Transactions don’t interfere with each other
+- **Durable:** Stored on non-volatile memory. Resilient to crash.
 
-**BASE: 
-- Basicly Available:** Read and write available *as much as possible without consistency guarantees*
-**- Soft State:** Db doesn’t enforce consistency. Offload onto app/user
-**- Eventually:** Eventually consistent (wait long enough)
-
-
-- DynamoDB is BASE
+**BASE**: 
+- **Basicly Available:** Read and write available *as much as possible without consistency guarantees*
+- **Soft State:** Db doesn’t enforce consistency. Offload onto app/user
+- **Eventually:** Eventually consistent (wait long enough)
+- **DynamoDB is BASE**
 
 ## Database on EC2
 
@@ -3546,7 +3788,7 @@ In case of failure of the primary DB, the CNAME points to the standby DB
 - Backups taken from Standby (removes performance impact)
 - AZ Outage, Primary Failure, Manual failover, Instance type change and software patching
 
-## RBD Backups and Restores
+## RDS Backups and Restores
 
 > *RDS is capable of performing Manual Snapshots and Automatic backups*
 > 
@@ -3574,6 +3816,77 @@ In case of failure of the primary DB, the CNAME points to the standby DB
 - Amount of maximum data loss
 - Influences technical solution and cost
 - Generally lower values cost more
+
+---
+**RTO (Recovery Time Objective)** and **RPO (Recovery Point Objective)** are two critical metrics used in **disaster recovery and business continuity planning**. They define your system's tolerance for downtime and data loss, respectively.
+
+---
+
+### 🔄 **RTO – Recovery Time Objective**
+
+* **Definition**: The **maximum acceptable amount of time** a system, application, or process can be down after a failure or disaster before it must be restored.
+* **Focus**: **Time to recover**
+* **Example**:
+  If the RTO for your API service is **2 hours**, then in the event of a failure, your goal is to restore the service within **2 hours**.
+
+---
+
+### 💾 **RPO – Recovery Point Objective**
+
+* **Definition**: The **maximum acceptable amount of data loss** measured in time. It defines how far back in time your data can be restored from backups.
+* **Focus**: **Data loss tolerance**
+* **Example**:
+  If the RPO for a database is **15 minutes**, you must have backups at least every 15 minutes to ensure data loss is within this threshold.
+
+---
+
+### 🔁 Comparison Table
+
+| Metric     | RTO                                  | RPO                                  |
+| ---------- | ------------------------------------ | ------------------------------------ |
+| Stands For | Recovery Time Objective              | Recovery Point Objective             |
+| Focus      | Downtime                             | Data Loss                            |
+| Measures   | How quickly systems must be restored | How much data you can afford to lose |
+| Units      | Time (minutes, hours)                | Time (seconds, minutes, hours)       |
+| Used For   | Planning system recovery timelines   | Planning backup frequency            |
+
+---
+
+### 🎯 Real-World Example
+
+You run an e-commerce platform:
+
+* You set **RTO = 1 hour** → Your site must be back online within 1 hour of an outage.
+* You set **RPO = 5 minutes** → You must have data backups no older than 5 minutes to minimize lost transactions.
+
+## 📌 Summary
+
+* **RTO** = How fast you recover → Use **Route 53**, **Auto Scaling**, **DRS**, **ELB**
+* **RPO** = How much data you can lose → Use **Backups**, **Snapshots**, **Versioning**
+---
+### 🛠️ AWS Services Example:
+
+#### 🔄 RTO-Oriented Services:
+
+| Service                                 | Purpose                                                     |
+| --------------------------------------- | ----------------------------------------------------------- |
+| **Route 53 Failover**                   | Automatically switch to standby endpoints in another region |
+| **Elastic Load Balancing (ELB)**        | Distribute traffic across healthy instances                 |
+| **Auto Scaling Groups**                 | Launch new EC2s in response to failures                     |
+| **EC2 AMIs & Launch Templates**         | Quickly redeploy preconfigured instances                    |
+| **Elastic Disaster Recovery (AWS DRS)** | Fast recovery of on-prem or cloud workloads                 |
+
+#### 💾 RPO-Oriented Services:
+
+| Service                   | Purpose                                                            |
+| ------------------------- | ------------------------------------------------------------------ |
+| **RDS Automated Backups** | Continuous snapshots; configurable retention                       |
+| **RDS Multi-AZ**          | Automatic failover to standby in another AZ                        |
+| **EBS Snapshots**         | Backup EBS volumes regularly                                       |
+| **AWS Backup**            | Centralized backup management across services                      |
+| **S3 Versioning**         | Retain versions to recover from accidental deletions or corruption |
+
+---
 
 ### RDS Backups
 
