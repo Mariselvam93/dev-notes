@@ -7466,8 +7466,65 @@ Here's a comparison of **Amazon FSx for Windows File Server** (FSx) and **Amazon
 - ❗Directly integrates with some AWS Products (RDS)❗
 
 💡 **RDS, integration, secrets or rotation → Secrets Manager > Parameter Store!**
+---
+| **Feature/Aspect**                | **AWS Secrets Manager**                                                                                                                   | **AWS Systems Manager Parameter Store**                                                                                                                            |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Purpose**                       | Designed for managing and storing **secrets** (e.g., API keys, database credentials)                                                      | Designed for storing configuration data and **parameterized settings** (e.g., passwords, connection strings, custom configurations)                                |
+| **Use Cases**                     | - Storing API keys, passwords, database credentials<br>- Managing **rotation** of secrets<br>- Enabling **automatic rotation** of secrets | - Storing application configuration settings<br>- Storing non-sensitive data (e.g., server names, version numbers)<br>- Storing sensitive data with **encryption** |
+| **Encryption**                    | Data is **encrypted at rest** using **AWS KMS** by default.                                                                               | Data is **encrypted at rest** using **AWS KMS** (if encrypted) or can be stored as plaintext.                                                                      |
+| **Automatic Rotation**            | Built-in support for **automatically rotating secrets** (e.g., RDS credentials, API keys) at scheduled intervals                          | Does not support automatic rotation of values, but can store values with specific versions or stages for reference                                                 |
+| **Versioning**                    | Supports **automatic versioning** of secrets, enabling rollbacks if necessary                                                             | Supports **parameter versioning**, allowing multiple versions of parameters to be stored and referenced                                                            |
+| **Cost**                          | Higher cost due to advanced features like automatic secret rotation and enhanced management capabilities                                  | Lower cost compared to Secrets Manager. You are charged based on the number of parameters and the type of access required (standard vs advanced parameters)        |
+| **Access Control**                | **Fine-grained access control** via IAM policies and resource-based policies                                                              | **Fine-grained access control** via IAM policies, can also apply conditions for encryption                                                                         |
+| **Integration with AWS Services** | Deep integration with various AWS services (e.g., Amazon RDS, Lambda, ECS, etc.) for secret management                                    | Integrates with many AWS services, especially those in AWS Systems Manager (e.g., EC2, Lambda, CloudFormation, etc.)                                               |
+| **IAM Role Integration**          | Supports direct integration with IAM roles for managing access to secrets in services like EC2 and Lambda                                 | Supports direct integration with IAM roles for managing access to parameters                                                                                       |
+| **Access via SDK/CLI**            | Access secrets via **AWS SDK**, **CLI**, or **AWS SDKs** with automatic decryption and access management                                  | Access parameters via **AWS SDK**, **CLI**, or **Systems Manager Console**. Can access parameters directly or through applications                                 |
+| **Regional Availability**         | Available in most AWS regions, secrets are stored per region                                                                              | Available in most AWS regions, parameters are stored per region                                                                                                    |
+| **Max Item Size**                 | Max size of a secret: **64 KB**                                                                                                           | Max size of a parameter value: **8 KB (standard parameter)** or **36 KB (advanced parameter)**                                                                     |
+| **Pricing**                       | Pricing based on the number of **secrets** stored and **API calls** made                                                                  | Pricing based on the number of **parameters** stored and the type of parameters (Standard or Advanced)                                                             |
+| **Access Methods**                | **Secrets Manager API**, AWS CLI, SDK, Lambda integration                                                                                 | **AWS Systems Manager API**, AWS CLI, SDK, CloudFormation, Lambda integration                                                                                      |
+---
+### **Key Differences Between Secrets Manager and Parameter Store**
 
+1. **Secrets Management vs Configuration Management**:
 
+   * **Secrets Manager** is focused on managing sensitive information like API keys, database credentials, and passwords. It includes features like automatic rotation for secrets and fine-grained access control.
+   * **Parameter Store** is broader in scope, handling both sensitive and non-sensitive configuration data, making it suitable for managing application settings and configuration parameters, including database credentials but without automatic rotation.
+
+2. **Automatic Rotation**:
+
+   * **Secrets Manager** has built-in support for rotating secrets automatically, which is useful for managing credentials securely without manual intervention. For example, you can rotate database credentials at scheduled intervals.
+   * **Parameter Store** does not have automatic rotation capabilities. You can store the credentials but must manually rotate them, or you can build automation around it.
+
+3. **Cost**:
+
+   * **Secrets Manager** is more expensive because it offers advanced features like automatic rotation, fine-grained access control, and version management.
+   * **Parameter Store** is more affordable and may be better for use cases where you do not need the advanced features of Secrets Manager.
+
+4. **Data Size Limit**:
+
+   * **Secrets Manager** allows you to store larger secret values, up to **64 KB**.
+   * **Parameter Store** limits parameters to **8 KB (Standard)** or **36 KB (Advanced)**, making it less suitable for larger secrets like large certificates.
+
+### When to Use **AWS Secrets Manager**:
+
+* When you need to manage **secrets** like API keys, database credentials, and passwords with built-in **automatic rotation**.
+* If you require a service that integrates tightly with other AWS services (like RDS or Lambda) for seamless secret management.
+* When you need **fine-grained access control** to secrets and want to ensure **secure** handling of sensitive information.
+* If you are willing to trade a higher cost for **advanced secret management features**.
+
+### When to Use **AWS Systems Manager Parameter Store**:
+
+* When you need to manage **application configuration** settings (e.g., environment variables, server names, versions).
+* For storing **sensitive data**, but where automatic rotation and advanced secret management features are not required.
+* If you're looking for a **lower-cost option** for storing a limited number of parameters.
+* When you need to store smaller, **less sensitive data** in a simple, scalable manner.
+
+### **Which One to Choose?**
+
+* Choose **AWS Secrets Manager** if your primary need is managing sensitive data like passwords, API keys, or credentials with automatic rotation and high security.
+* Choose **AWS Systems Manager Parameter Store** if you're looking to manage configuration settings, less sensitive data, or need a lower-cost option for secrets and parameters.
+---
 ### Architecture
 
 ![Untitled](img/Untitled%20195.png)
@@ -7539,6 +7596,73 @@ Here's a comparison of **Amazon FSx for Windows File Server** (FSx) and **Amazon
 - Captcha - $0.40 / 1000 challenge attempts
 - Fraud control/account takeover ($10 month) & $1 / 1000 login attempts
 - Marketplace Rule Groups - Extra costs
+---
+AWS WAF (Web Application Firewall) is a security service that helps protect your web applications from common web exploits and attacks that can compromise security, availability, and the user experience. It's designed to allow you to create custom rules to protect your web applications from threats such as SQL injection, cross-site scripting (XSS), and other vulnerabilities.
+
+### Key Features of AWS WAF:
+
+1. **Custom Rules**:
+
+   * **Allow, Block, or Count Requests**: You can define rules to either allow, block, or count web requests based on conditions you specify (e.g., IP address, query string, URI, headers, body, etc.).
+   * **Rate-based Rules**: You can define rate-based rules to block requests if the number of requests exceeds a defined threshold within a 5-minute period. This helps protect against DDoS (Distributed Denial-of-Service) attacks.
+   * **Managed Rule Groups**: AWS provides pre-configured rule sets for common web attacks. You can enable these rules to protect against SQL injection, XSS, and other common attacks.
+
+2. **Bot Control**:
+
+   * AWS WAF provides bot mitigation capabilities to detect and block bad bots while allowing legitimate traffic to pass through. This helps protect against scraping, credential stuffing, and other bot-related attacks.
+
+3. **Logging and Monitoring**:
+
+   * AWS WAF integrates with AWS CloudWatch, allowing you to log requests that match your rules and monitor the traffic that is being blocked or allowed. This helps with troubleshooting and understanding the effectiveness of your security policies.
+
+4. **IP Set and Geo-blocking**:
+
+   * You can configure rules to block or allow traffic based on the IP address, or by specifying countries using Geo-blocking.
+
+5. **AWS Shield Integration**:
+
+   * AWS WAF is integrated with AWS Shield for additional DDoS protection. AWS Shield Advanced provides enhanced protections against large-scale DDoS attacks.
+
+6. **Rate Limiting**:
+
+   * You can define rules to limit the rate at which requests can be made from a particular IP address. This helps prevent abuse of your services from high-frequency requests.
+
+7. **Web ACL (Access Control List)**:
+
+   * AWS WAF uses Web ACLs to associate rules with the resources you want to protect, such as an Amazon CloudFront distribution, an Application Load Balancer, or an API Gateway.
+
+### Common Use Cases for AWS WAF:
+
+1. **Protect Web Applications from Attacks**:
+
+   * Protect against common OWASP Top 10 vulnerabilities like SQL injection, cross-site scripting (XSS), and other exploits.
+   * Prevent unauthorized access to APIs by filtering traffic based on HTTP headers, body, and query strings.
+
+2. **Rate Limiting**:
+
+   * Protect your application from DDoS attacks by implementing rate-based rules that can block requests from IP addresses that exceed a defined threshold of requests.
+
+3. **Bot Mitigation**:
+
+   * Block or allow traffic based on patterns commonly associated with bots, such as unusual request patterns or signatures.
+
+4. **Geo-blocking**:
+
+   * Block access to your application from specific geographic regions where you don't expect traffic or where attacks may be originating.
+
+5. **Application Load Balancer Protection**:
+
+   * Integrate AWS WAF with an Application Load Balancer to protect web applications behind the load balancer from malicious traffic.
+
+### Pricing:
+
+AWS WAF pricing is based on the number of Web ACLs, rules, and requests. You are charged for:
+
+* **Web ACLs**: The number of Web ACLs you create.
+* **Rules**: The number of custom or managed rules you apply.
+* **Requests**: The number of requests processed by the WAF.
+
+---
 
 ## AWS Shield
 
@@ -7573,8 +7697,125 @@ Here's a comparison of **Amazon FSx for Windows File Server** (FSx) and **Amazon
 - Real time visibility of DDOS events and attacks
 - Health-based detection - application specific health checks, used by proactive engagement team
 - Protection groups
+---
+**AWS Shield** is a managed Distributed Denial-of-Service (DDoS) protection service that helps safeguard AWS applications from a variety of DDoS attacks. It is designed to protect applications hosted on AWS from disruptions that can be caused by malicious actors attempting to flood your service with excessive traffic.
 
-## CloudHSM
+AWS Shield offers two levels of protection: **AWS Shield Standard** and **AWS Shield Advanced**.
+
+### Key Features of AWS Shield:
+
+#### **AWS Shield Standard**
+
+**AWS Shield Standard** provides automatic protection for all AWS customers at no additional charge. It is designed to protect your AWS resources from the most common types of DDoS attacks, such as SYN/ACK floods, DNS query floods, and other volumetric attacks.
+
+* **Protection against Common Attacks**:
+
+  * Protects against network and transport layer attacks, including UDP reflection, SYN floods, and DNS query floods.
+  * Automatically defends against attacks like UDP and DNS reflection.
+
+* **Integrated with AWS Global Infrastructure**:
+
+  * Shield Standard is built into the AWS global network, so you get automatic protection without requiring any configuration.
+  * Protection is provided at the edge of the AWS network, minimizing the risk of attacks affecting your resources.
+
+* **No Additional Cost**:
+
+  * AWS Shield Standard is free and automatically protects all AWS customers using AWS services like Amazon CloudFront, Elastic Load Balancing (ELB), Amazon Route 53, and Amazon Global Accelerator.
+
+#### **AWS Shield Advanced**
+
+**AWS Shield Advanced** provides enhanced DDoS protection, tailored to applications that need more robust and complex protection. It is a premium service that requires a subscription and offers additional features over Shield Standard.
+
+* **Enhanced DDoS Protection**:
+
+  * Shield Advanced offers protection against larger and more sophisticated attacks, including attacks targeting the application layer (e.g., HTTP floods), as well as attacks at the network and transport layers.
+
+* **24/7 Access to the AWS DDoS Response Team (DRT)**:
+
+  * With Shield Advanced, you get around-the-clock access to the AWS DDoS Response Team, which provides support during an active DDoS attack to help mitigate and respond quickly.
+
+* **Advanced Threat Intelligence**:
+
+  * Shield Advanced customers get detailed attack diagnostics, including real-time alerts and insights into attacks targeting your AWS resources.
+  * Access to attack metrics and enhanced logging of DDoS attacks.
+
+* **Protection Against Larger Attacks**:
+
+  * AWS Shield Advanced can handle larger-scale attacks, offering protections against attacks of up to 100 Gbps or higher.
+
+* **Cost Protection**:
+
+  * AWS offers financial protections to Shield Advanced customers in the case of DDoS attacks. If an attack results in extra charges (e.g., from scaling or additional AWS resources), AWS will cover the extra costs.
+
+* **Web Application Firewall (WAF) Integration**:
+
+  * Shield Advanced integrates seamlessly with AWS WAF, which allows you to create custom security rules to filter malicious web traffic (e.g., SQL injections, XSS attacks).
+
+* **Global Threat Environment Dashboard (GTED)**:
+
+  * Provides a centralized view of current threats to your resources globally and can provide insights into ongoing global attacks. It also helps you understand trends in DDoS activity and how to better prepare.
+
+* **Additional Protection for Amazon Elastic Load Balancer (ELB), Amazon CloudFront, and Route 53**:
+
+  * Enhanced protections for these services, making them more resilient to larger and more complex DDoS attacks.
+
+* **Cost**:
+
+  * Shield Advanced comes with an additional subscription cost (pricing is based on resources and data transfer). This service is designed for customers with mission-critical applications that need higher levels of protection.
+
+### Use Cases for AWS Shield:
+
+1. **Protection for Critical Web Applications**:
+
+   * If your business relies on web applications (e.g., e-commerce, financial services, etc.), AWS Shield Advanced can protect your apps from application-layer DDoS attacks such as HTTP floods, as well as volumetric attacks.
+
+2. **Real-time Monitoring and Response**:
+
+   * With Shield Advanced, you get access to real-time attack metrics, attack diagnostics, and immediate support from AWS DRT. This is especially useful for large-scale enterprises that rely heavily on web traffic and need to respond to attacks quickly.
+
+3. **Mitigating Cost Implications of DDoS Attacks**:
+
+   * With Shield Advanced, if a DDoS attack results in additional resource usage (e.g., scaling up of infrastructure due to traffic spikes), AWS will absorb these extra costs under the "DDoS Cost Protection" feature.
+
+4. **Enhanced DDoS Mitigation for Highly Available and Global Applications**:
+
+   * Shield Advanced offers enhanced protection for global applications hosted on AWS, such as those using Amazon CloudFront, Elastic Load Balancers, or Route 53.
+
+5. **Regulatory Compliance and Risk Management**:
+
+   * Organizations that need to meet specific compliance requirements or risk management strategies can benefit from the additional protections and audit trails provided by AWS Shield Advanced.
+
+### Integrating AWS Shield with Other AWS Services:
+
+* **Amazon CloudFront**: AWS Shield integrates seamlessly with CloudFront, AWS's Content Delivery Network (CDN), to protect against both large-scale DDoS attacks and application-layer attacks.
+* **Elastic Load Balancing (ELB)**: Shield Advanced provides enhanced protection for ELBs, which are commonly used to distribute traffic among EC2 instances, preventing attacks from impacting your entire infrastructure.
+* **Amazon Route 53**: AWS Shield protects Route 53, Amazon's DNS service, from DNS-based attacks, ensuring that DNS queries are resolved without disruption during an attack.
+
+### Pricing:
+
+* **Shield Standard**: Free, with automatic protection for all AWS customers using Amazon CloudFront, Elastic Load Balancing, Route 53, and Global Accelerator.
+* **Shield Advanced**: Pricing is based on the usage of AWS resources and services (e.g., the number of protected resources like CloudFront distributions, ELBs, and Route 53 hosted zones). There is also an additional subscription fee for Shield Advanced.
+
+---
+
+### How to Enable AWS Shield:
+
+1. **Shield Standard**: Enabled by default for all AWS customers at no extra charge.
+2. **Shield Advanced**:
+
+   * To enable Shield Advanced, you can subscribe to the service through the AWS Management Console.
+   * Once subscribed, you can start configuring it to protect your AWS resources, including associating it with Amazon CloudFront, Elastic Load Balancers, or Route 53 hosted zones.
+
+---
+
+### Example Scenario:
+
+If you're running a critical web application on Amazon CloudFront and Amazon ELB, you may choose to subscribe to **AWS Shield Advanced** to protect against both volumetric DDoS attacks and application-layer attacks. AWS Shield Advanced would automatically protect your infrastructure from common attacks, provide detailed attack diagnostics, and enable real-time alerts. In the event of a large-scale attack, you can contact AWS's DDoS Response Team (DRT) for assistance, and the extra scaling costs incurred by the attack would be covered by AWS.
+
+---
+
+
+## CloudHSM (Cloud Hardware Security Module)
 
 > *CloudHSM is required to achieve compliance with certain security standards such as FIPS 140-2 Level 3*
 > 
@@ -7596,6 +7837,123 @@ Here's a comparison of **Amazon FSx for Windows File Server** (FSx) and **Amazon
 - Offload the SSL/TLS processing for web servers
 - Enable Transparent Data Encryption (TDE) for Oracle Databases
 - Protect the Private Keys for an Issuing Certificate Authority (CA)
+---
+**AWS CloudHSM (Cloud Hardware Security Module)** is a managed service provided by AWS that enables customers to generate and use their own encryption keys in a hardware-based secure environment. CloudHSM provides a cloud-based hardware security module (HSM) that allows users to manage encryption keys for a variety of use cases such as cryptographic key storage, secure key generation, and cryptographic operations.
+
+CloudHSM ensures that your sensitive data, such as private keys and cryptographic operations, is stored and processed in hardware that is tamper-resistant, meeting strict security and compliance standards.
+
+### Key Features of AWS CloudHSM:
+
+1. **FIPS 140-2 Level 3 Compliance**:
+
+   * CloudHSM is FIPS 140-2 Level 3 validated, which is a security standard that defines the minimum security requirements for cryptographic modules used within a security system to protect sensitive data. This level of compliance is often required in regulated industries like finance, healthcare, and government.
+
+2. **Dedicated HSMs**:
+
+   * CloudHSM provides dedicated hardware security modules (HSMs) for each customer, ensuring that your cryptographic keys are isolated from other customers' data. This provides an additional layer of security, as the HSMs are not shared with other customers.
+
+3. **Control over Keys**:
+
+   * With CloudHSM, you control your encryption keys, which are stored and managed inside the hardware module. You can use CloudHSM to generate, store, and manage keys used for encryption, decryption, signing, and verifying data.
+   * You can use your own cryptographic keys or migrate existing keys to CloudHSM.
+
+4. **High Availability**:
+
+   * AWS CloudHSM is designed for high availability with multiple HSM instances spread across different Availability Zones in an AWS Region, which ensures that your HSM-based services can continue to function even if one instance becomes unavailable.
+
+5. **Key Management**:
+
+   * AWS CloudHSM integrates with AWS Key Management Service (KMS) for key management and operations, providing a seamless experience for applications requiring cryptographic operations and secure key storage.
+   * CloudHSM can also be used independently for cryptographic operations in more advanced or specialized scenarios.
+
+6. **Supports Industry Standard APIs**:
+
+   * CloudHSM supports the **PKCS#11** and **JCE (Java Cryptography Extension)** APIs, as well as the **CNG (Cryptography Next Generation)** API for Microsoft environments. These are widely used standards for interacting with HSMs.
+   * You can integrate CloudHSM into your applications using these standards, without needing to modify your application code.
+
+7. **Scalable**:
+
+   * You can add more HSM instances to meet your application's growing demand for cryptographic operations and key storage. CloudHSM automatically scales without manual intervention.
+
+8. **Data Residency and Compliance**:
+
+   * CloudHSM allows you to store your keys in AWS infrastructure, while also ensuring that these keys never leave the region where they are generated. This can help meet regulatory requirements that mandate key residency.
+
+9. **Logging and Auditing**:
+
+   * AWS CloudHSM integrates with **AWS CloudTrail** to provide logging and auditing capabilities. You can track the use of your keys, including key management operations and cryptographic operations, to ensure compliance and detect any unauthorized access.
+
+### Use Cases for AWS CloudHSM:
+
+1. **Data Encryption and Key Management**:
+
+   * Store and manage your encryption keys securely for data at rest or in transit. This is particularly useful for highly sensitive applications such as financial services, healthcare, or government applications.
+   * CloudHSM can be used for encrypting data before it’s stored in databases, files, or S3 buckets.
+
+2. **Digital Signing and Verification**:
+
+   * Use CloudHSM to digitally sign documents or data. This is useful for ensuring the integrity and authenticity of sensitive information, such as contracts, legal documents, or software packages.
+   * You can also verify digital signatures using CloudHSM, providing a tamper-evident mechanism for verifying data authenticity.
+
+3. **Cryptographic Operations for Compliance**:
+
+   * Many regulatory standards require data to be encrypted and signed using FIPS 140-2 Level 3 validated hardware, and CloudHSM meets these requirements.
+   * CloudHSM can help organizations meet the compliance and regulatory requirements for encryption and key management.
+
+4. **Private Key Storage**:
+
+   * Use CloudHSM for securely storing private keys used in public/private key pairs for SSH access, SSL/TLS certificates, or other cryptographic applications.
+   * This ensures that private keys are never exposed in plaintext.
+
+5. **Secure Software Development**:
+
+   * Integrate CloudHSM into your software development lifecycle to handle cryptographic operations within a secure hardware environment.
+   * Developers can use CloudHSM for cryptographic libraries and secure key storage within their applications.
+
+6. **Custom Cryptographic Algorithms**:
+
+   * CloudHSM allows you to implement your own cryptographic algorithms or use algorithms not supported by other AWS services. This is useful for businesses requiring proprietary encryption methods or non-standard cryptography.
+
+### AWS CloudHSM Pricing:
+
+* AWS CloudHSM pricing is based on the following:
+
+  * **Hourly Usage**: You pay for each HSM instance running in your account on an hourly basis.
+  * **Storage**: If you store data in CloudHSM, there may be additional costs based on storage usage.
+  * **Data Transfer**: Data transfer into and out of CloudHSM incurs costs, though transfers between AWS services in the same region are typically free.
+
+You can find detailed pricing information on AWS’s pricing page.
+
+### How to Set Up AWS CloudHSM:
+
+1. **Create a CloudHSM Cluster**:
+
+   * You start by creating a **CloudHSM cluster** in an AWS region. This cluster contains one or more HSM instances.
+   * You can choose the number of HSMs you want in the cluster, based on your needs for redundancy and availability.
+
+2. **Configure Clients to Use CloudHSM**:
+
+   * After setting up the HSM cluster, you can configure your applications to interact with CloudHSM using the supported APIs (PKCS#11, JCE, or CNG).
+   * AWS provides CloudHSM client software to help integrate CloudHSM into your systems.
+
+3. **Key Management**:
+
+   * Use CloudHSM's key management features to create and manage keys inside the hardware module.
+   * You can also integrate CloudHSM with AWS KMS for additional management and operations on the keys.
+
+4. **Monitor CloudHSM**:
+
+   * AWS CloudHSM integrates with AWS CloudWatch to allow you to monitor metrics such as the usage and health of your HSM cluster.
+   * You can also use CloudTrail to log and audit operations involving your HSM keys.
+
+---
+
+### Example Scenario:
+
+Let’s say your company is developing a financial services application that processes transactions and stores sensitive data. Due to regulatory requirements, you need to ensure that encryption keys are stored securely and that cryptographic operations are performed in a tamper-resistant environment. AWS CloudHSM would be an ideal solution to store and manage these encryption keys, providing a high level of security and compliance for your sensitive operations.
+
+---
+
 
 ## AWS Config
 
