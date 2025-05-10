@@ -6914,7 +6914,51 @@ aws ec2 create-vpc-endpoint \
 ### GREAT
 
 ![Untitled](img/Untitled%20179.png)
+---
+**AWS Direct Connect** is a **dedicated network connection** that links your on-premises infrastructure directly to AWS, bypassing the public internet.
 
+---
+
+### 🚀 **Key Features**
+
+* **Private Connectivity**: Secure, consistent performance—avoids internet congestion.
+* **High Bandwidth**: Supports connections from **50 Mbps up to 100 Gbps**.
+* **Low Latency**: Ideal for real-time, high-throughput workloads.
+* **Hybrid Cloud Integration**: Seamless integration with AWS VPCs, Transit Gateways, etc.
+
+---
+
+### 🧩 **Components**
+
+* **Direct Connect Location**: AWS-owned colocation facility where your router connects to AWS router.
+* **Virtual Interface (VIF)**:
+
+  * **Public VIF**: Access AWS services (S3, DynamoDB, etc.).
+  * **Private VIF**: Access your VPCs directly.
+* **Link Aggregation Group (LAG)**: Combine multiple connections for increased bandwidth and redundancy.
+
+---
+
+### ✅ **Use Cases**
+
+* Consistent performance for **financial services**, **media streaming**, or **large data transfers**.
+* Securely connect **on-prem data centers** to AWS for hybrid cloud setups.
+* Compliance-sensitive workloads requiring **private network paths**.
+
+---
+
+### 🆚 Compared to VPN:
+
+| Feature     | **AWS Direct Connect**  | **VPN over Internet**          |
+| ----------- | ----------------------- | ------------------------------ |
+| Performance | High, consistent        | Variable                       |
+| Latency     | Low                     | Higher                         |
+| Security    | Physical isolation      | Encrypted over public internet |
+| Setup Time  | Longer (physical setup) | Quick                          |
+| Cost        | Higher (dedicated line) | Lower                          |
+---
+![alt text](img/DirectConnect.png)
+---
 ## AWS Transit Gateway (TGW)
 
 > *The AWS Transit gateway is a network gateway which can be used to significantly simplify networking between VPC's, VPN and Direct Connect.*
@@ -6939,7 +6983,60 @@ aws ec2 create-vpc-endpoint \
 ### Architecture
 
 ![Untitled](img/Untitled%20180.png)
+---
+**AWS Transit Gateway** is a networking service that enables you to **connect multiple VPCs and on-premises networks** through a central hub.
 
+---
+
+### 🚦 **Key Features**
+
+* **Centralized Hub**: Acts as a transit router to simplify network architecture.
+* **Scalable**: Connect thousands of VPCs and VPNs.
+* **High Performance**: Uses AWS backbone, ensuring high throughput and low latency.
+* **Resource Sharing**: Supports cross-account VPC attachments using Resource Access Manager (RAM).
+* **Multicast Support**: Useful for streaming, video, and real-time use cases.
+
+---
+
+### 🧩 **Core Components**
+
+* **Attachments**: Connects to VPCs, Direct Connect gateways, or VPNs.
+* **Route Tables**: Determines how traffic flows between attachments.
+* **Transit Gateway Peering**: Connects TGWs across AWS Regions.
+
+---
+
+### ✅ **Use Cases**
+
+* **Centralized routing** between thousands of VPCs.
+* **Hybrid cloud** setups (e.g., VPC + on-prem).
+* **Multi-account architecture** in large enterprises.
+* Replacement for complex **VPC peering mesh**.
+
+---
+
+### 🆚 Transit Gateway vs VPC Peering
+
+| Feature            | **Transit Gateway**       | **VPC Peering**                   |
+| ------------------ | ------------------------- | --------------------------------- |
+| Scalability        | Thousands of VPCs         | 1:1 peering only                  |
+| Management         | Centralized               | Decentralized (manual per VPC)    |
+| Transitive Routing | Supported                 | Not supported                     |
+| Cost               | Additional charges per GB | No additional data processing fee |
+---
+## Direct Connect, VPC Peering, Transit Gateway
+| Feature                   | **AWS Direct Connect**             | **VPC Peering**                          | **Transit Gateway**                           |
+| ------------------------- | ---------------------------------- | ---------------------------------------- | --------------------------------------------- |
+| **Purpose**               | Dedicated line from on-prem to AWS | Connect 2 VPCs privately                 | Centralized hub to connect many VPCs/VPNs     |
+| **Connectivity Type**     | On-prem → AWS (Layer 2)            | VPC ↔ VPC (1-to-1)                       | VPCs, VPNs, DX Gateways (many-to-many)        |
+| **Transitive Routing**    | Not applicable                     | ❌ Not supported                          | ✅ Supported                                   |
+| **Scalability**           | 1:1 or via Direct Connect Gateway  | Low (manual setup for each pair)         | High (thousands of VPCs)                      |
+| **Performance**           | Very high (low latency, dedicated) | Good (within AWS network)                | High (uses AWS backbone)                      |
+| **Cross-Region Support**  | ✅ Yes (via Direct Connect Gateway) | ✅ Yes (but manual and limited)           | ✅ Yes (via TGW peering)                       |
+| **Encryption**            | ❌ No (needs VPN or IPsec on top)   | ✅ Yes (optional with VPN/IPSec)          | ✅ Yes (via VPN attachments if needed)         |
+| **Management Complexity** | Moderate (requires physical setup) | High (many connections for full mesh)    | Low (centralized management)                  |
+| **Cost**                  | High (physical line charges)       | No extra charges (beyond normal traffic) | Per-GB data processing cost + attachment fees |
+---
 ## Storage Gateway - Volume
 
 > *Storage gateway is a product which integrates local infrastructure and AWS storage such as S3, EBS Snapshots and Glacier.*
@@ -6997,7 +7094,42 @@ aws ec2 create-vpc-endpoint \
 ### Architecture: Multiple Contributors and Replication
 
 ![Untitled](img/Untitled%20185.png)
+---
+**AWS Storage Gateway** is a hybrid cloud storage service that enables your **on-premises applications** to access **AWS cloud storage seamlessly**, using industry-standard protocols.
 
+---
+
+### 🧩 **Types of Storage Gateways**
+
+| Gateway Type       | Purpose                                                              | Use Case Example                             |
+| ------------------ | -------------------------------------------------------------------- | -------------------------------------------- |
+| **File Gateway**   | Store files as objects in S3, accessible via **NFS/SMB**             | Backup NAS to S3, archive documents          |
+| **Tape Gateway**   | Virtual tape library that stores data in **S3 Glacier/Deep Archive** | Replace physical tape backups                |
+| **Volume Gateway** | Cloud-backed iSCSI block storage. Two modes:                         |                                              |
+| - Cached Volumes   | Frequently accessed data is local, rest in AWS                       | Expand on-prem storage with cloud elasticity |
+| - Stored Volumes   | All data stored locally, with backups to AWS                         | On-prem performance, cloud durability        |
+
+---
+
+### ⚙️ **Key Features**
+
+* **Local caching**: Reduces latency for active data.
+* **Integrated with AWS Backup**: Centralized backup management.
+* **Encrypted and compressed** data transfer.
+* **Seamless failover** for disaster recovery.
+
+---
+
+### ✅ **Use Cases**
+
+* Hybrid cloud backups.
+* Offsite archiving and compliance.
+* Extending local storage capacity without buying hardware.
+* Simplifying legacy tape-based workflows.
+
+---
+![alt text](img/StorageGateway.png)
+---
 ## Snowball & Snowmobile
 
 > *Snowball, Snowball Edge and Snowmobile are three parts of the same product family designed to allow the physical transfer of data between business locations and AWS.*
@@ -7039,7 +7171,16 @@ aws ec2 create-vpc-endpoint \
 - Up to **100PB per snowmobile**
 - Not economical for **multi-site** (unless huge) or sub **10PB** ❗
 - LITERALLY A TRUCK
+---
+| Feature     | Snowball      | Snowball Edge           | Snowmobile         |
+| ----------- | ------------- | ----------------------- | ------------------ |
+| Capacity    | \~80 TB       | Up to 210 TB            | Up to 100 PB       |
+| Compute     | ❌             | ✅ (EC2, Lambda)         | ❌                  |
+| Use Case    | Bulk transfer | Edge compute, migration | Data center move   |
+| Form Factor | Device        | Device with compute     | Shipping container |
+| Delivery    | Courier       | Courier                 | Semi-truck         |
 
+---
 ## AWS Directory Service
 
 > *The Directory service is a product which provides managed directory service instances within AWS*
@@ -7088,7 +7229,17 @@ aws ec2 create-vpc-endpoint \
 - ❗ **Simple AD should be default** ❗
 - **Microsoft AD** - Applications in AWS which need **MS AD DS**, or you need to **TRUST AD DS**
 - **AD Connector** - Use AWS Services which need a directory **without storing any directory info in the cloud** - proxy to your on-premises Directory
+---
+| **Directory Type**           | **Description**                                                                                                                 | **Key Features**                                                                                   | **Use Cases**                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **AWS Managed Microsoft AD** | Fully managed Microsoft Active Directory in the cloud, similar to on-premises AD. AWS handles setup, patching, and maintenance. | - Supports full AD features like group policies, organizational units, domain trust relationships. | - Extending on-prem AD to the cloud.                             |
+|                              |                                                                                                                                 | - Seamless integration with AWS services like Amazon WorkSpaces, RDS, FSx.                         | - Running applications requiring AD features.                    |
+| **Simple AD**                | Managed, cost-effective directory service based on Samba 4, offering basic AD capabilities for smaller environments.            | - Compatible with AWS services like Amazon WorkSpaces, Amazon RDS.                                 | - Small-scale environments or simpler directory needs.           |
+|                              |                                                                                                                                 | - Lower cost compared to AWS Managed Microsoft AD.                                                 | - Basic Active Directory requirements.                           |
+| **AD Connector**             | A proxy service that connects your AWS resources to an existing on-premises Microsoft AD.                                       | - No directory replication, acts as a proxy.                                                       | - Integrating AWS resources with on-premises AD.                 |
+|                              |                                                                                                                                 | - Provides authentication to AWS applications using on-premises AD credentials.                    | - Hybrid environments where you want to keep the AD on-premises. |
 
+---
 ## AWS DataSync
 
 > *AWS DataSync is a product which can orchestrate the movement of large scale data (amounts or files) from on-premises NAS/SAN into AWS or vice-versa*
@@ -7118,13 +7269,40 @@ aws ec2 create-vpc-endpoint \
 - **Task** - A “job” within DataSync. Defines what is being synced, how quickly, FROM where and TO where
 - **Agent** - Software used to **read/write** to on-premises data stores using **NFS** or **SMB**
 - **Location** - every task has two locations (TO/FROM). E.g. NFS, Server Message Block (SMB), Amazon EFS, Amazon FSx and S3
+---
+AWS DataSync is a fully managed data transfer service designed to automate and accelerate the movement of large amounts of data between on-premises storage and AWS storage services, or between different AWS services. It supports both file-based and object-based data transfers.
 
+Here's a table summarizing the key features and use cases for AWS DataSync:
+
+| **Feature**                     | **Description**                                                                                    | **Supported Data Sources/Targets**                                | **Use Cases**                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Automated Data Transfer**     | Simplifies and automates large-scale data migrations.                                              | - On-premises storage (e.g., NFS, SMB, HDFS)                      | - Data migrations to AWS (e.g., to Amazon S3, EFS, FSx).      |
+| **High-speed Transfer**         | Optimized for high-speed data transfers, typically 10x faster than traditional methods like rsync. | - Amazon S3, Amazon EFS, Amazon FSx, Amazon S3 Glacier            | - Disaster recovery and backup scenarios.                     |
+| **File and Object Transfer**    | Supports both file-based (NFS, SMB) and object-based (S3) data transfer.                           | - On-premises servers, AWS S3, Amazon EFS, Amazon FSx             | - Data archiving and moving large datasets.                   |
+| **Data Synchronization**        | Can continuously sync data between your on-premises systems and AWS storage.                       | - Continuous synchronization between on-premises and AWS targets. | - Hybrid cloud environments with real-time or scheduled sync. |
+| **Security and Encryption**     | Supports encryption in transit and at rest, ensuring secure data transfers.                        | - AES-256 encryption for data in transit and at rest.             | - Secure data migrations and transfers.                       |
+| **Data Integrity & Validation** | Includes built-in data integrity checks to ensure accurate transfers.                              | - Validates file integrity during transfer.                       | - Ensuring data consistency during migrations.                |
+| **Cost-effective**              | Pay only for the amount of data transferred and the duration of the transfer.                      | - No upfront fees, charges based on data volume.                  | - Cost-efficient large data migrations and backups.           |
+| **Scheduling & Monitoring**     | Allows for scheduling, monitoring, and logging of transfers for visibility and auditing.           | - AWS CloudWatch integration for monitoring.                      | - Automated data migration with monitoring and logging.       |
+
+### **Common Use Cases**:
+
+1. **Data Migration**: Migrate large volumes of data from on-premises storage to AWS (e.g., Amazon S3, EFS, FSx).
+2. **Backup and Disaster Recovery**: Sync data from on-premises systems to AWS storage to ensure it’s always backed up and ready for recovery.
+3. **Data Archiving**: Move large datasets to cost-effective storage solutions like Amazon S3 Glacier.
+4. **Hybrid Cloud**: Synchronize and manage data between on-premises and cloud environments for hybrid cloud use cases.
+
+### **Supported Storage Services**:
+
+* **On-premises**: NFS, SMB, HDFS.
+* **AWS Cloud**: Amazon S3, Amazon EFS, Amazon FSx, Amazon S3 Glacier.
+---
 ## FSx for Windows File Server
 
 > *FSx for Windows Servers provides a native windows file system as a service which can be used within AWS, or from on-premises environments via VPN or Direct Connect*
 > 
 > 
-> *FSx is an advanced shared file system accessible over SMB, and integrates with Active Directory (either managed, or self-hosted).*
+> *FSx is an advanced shared file system accessible over **SMB(Server Message Block)**, and integrates with Active Directory (either managed, or self-hosted).*
 > 
 > *It provides advanced features such as VSS, Data de-duplication, backups, encryption at rest and forced encryption in transit.*
 > 
@@ -7135,7 +7313,43 @@ aws ec2 create-vpc-endpoint \
 - **On-demand** and **Scheduled** backups
 - Accessible using **VPC, Peering, VPN, Direct Connect**
 - ❗Exam job: When to use FSx and when to use EFS ❗
+---
+### Common Use Cases:
 
+* **Lift-and-Shift Windows-based Applications**: Migrate on-premises Windows workloads to AWS without needing to rewrite applications.
+* **Shared File Storage for Windows Applications**: Provide shared file storage for applications running on Windows instances.
+* **Backup and Disaster Recovery**: Create backups of your file systems and use them for disaster recovery purposes.
+---
+Here's a comparison of **Amazon FSx for Windows File Server** (FSx) and **Amazon Elastic File System** (EFS) (**When to use FSx and when to use EFS**):
+---
+
+| Feature/Aspect                     | **Amazon FSx for Windows File Server (FSx)**                                                                 | **Amazon Elastic File System (EFS)**                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| **Protocol Support**               | SMB (Server Message Block), compatible with Windows-based applications                                       | NFS (Network File System), compatible with Linux-based applications                                      |
+| **Operating System Compatibility** | Primarily for **Windows** workloads                                                                          | Primarily for **Linux**, but can be mounted by Windows and macOS clients                                 |
+| **Performance & Scalability**      | High performance with configurable throughput and IOPS                                                       | Elastic scalability, automatically scales with usage                                                     |
+| **Use Cases**                      | - Windows file shares<br>- Active Directory integration<br>- High-performance Windows workloads              | - Shared file system for Linux workloads<br>- Web servers, CMS<br>- Containerized applications (ECS/EKS) |
+| **Active Directory Integration**   | Native AD integration for file access control                                                                | No native AD support (can integrate with AWS Managed AD for access control)                              |
+| **Data Protection & Availability** | - Multi-AZ high availability<br>- Automated backups<br>- Data replication                                    | - Multi-AZ high availability<br>- Cross-region replication<br>- Backup support                           |
+| **Cost Considerations**            | Higher cost, based on storage capacity and performance options                                               | Cost-effective, based on storage usage with two storage classes (Standard & IA)                          |
+| **Security**                       | - Windows-style ACLs for security<br>- KMS encryption at rest and in transit                                 | - IAM for access control<br>- KMS encryption at rest and in transit                                      |
+| **Performance Features**           | Configurable throughput, high IOPS, ideal for large Windows workloads                                        | Best suited for applications needing high concurrency and elasticity                                     |
+| **Typical Applications**           | - Windows enterprise applications<br>- Database-driven workloads<br>- File-sharing for Windows EC2 instances | - Web hosting<br>- Content management systems<br>- Big data/analytics<br>- Containerized applications    |
+| **Integration with AWS Services**  | Works with AWS services but optimized for Windows workloads                                                  | Works seamlessly with ECS, EKS, Lambda, and Linux-based workloads                                        |
+| **Backup & Disaster Recovery**     | Supports backup, snapshots, and disaster recovery configurations                                             | Supports backup, snapshots, and cross-region replication for resilience                                  |
+| **Access Control**                 | Managed via **Active Directory** and Windows ACLs                                                            | Managed via **IAM** and NFS permissions                                                                  |
+---
+### When to Use **FSx**:
+
+* Windows-based applications that require **SMB protocol** and **Active Directory** integration.
+* **High-performance Windows workloads** needing high throughput and low-latency file access.
+
+### When to Use **EFS**:
+
+* **Linux-based applications** or workloads that require a **shared file system**.
+* Scalable storage needs, particularly for **web servers**, **containerized applications**, or workloads with high concurrency.
+
+---
 ### Architecture
 
 ![Untitled](img/Untitled%20190.png)
