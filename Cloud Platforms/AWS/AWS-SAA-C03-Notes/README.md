@@ -6494,6 +6494,93 @@ Output to S3 / Redshift / Athena
 - Can be used for NON hTTP/S (TCP/UDP) - **DIFFERENCE FROM CLOUDFRONT**
 
 
+---
+
+## 🌐 **AWS Global Accelerator**
+
+### ✅ Use Case:
+
+* Improves performance for **TCP/UDP applications** over the public internet (e.g., APIs, web apps, gaming).
+* Uses **static IPs** for global traffic distribution and failover.
+
+### 🔑 Key Features:
+
+* **Anycast IPs**: Single static IP routes user traffic to nearest AWS edge location.
+* **Supports TCP/UDP**: Works for non-HTTP(S) workloads (e.g., gaming, VoIP, APIs).
+* **Global failover**: Automatically reroutes to healthy endpoints in different Regions.
+* **Regional endpoint routing**: Routes to ALBs, NLBs, EC2 instances, or EIPs.
+
+---
+
+## 📦 **Amazon CloudFront**
+
+### ✅ Use Case:
+
+* **Content delivery network (CDN)** for **HTTP/HTTPS static and dynamic content** (e.g., images, videos, HTML, APIs).
+* Optimizes **caching** and latency for web applications.
+
+### 🔑 Key Features:
+
+* **Edge caching**: Reduces latency by serving cached content close to the user.
+* **Origin servers**: S3, ALB, EC2, or custom origins.
+* **SSL termination** and **WAF support**.
+* Supports **signed URLs/cookies** for restricted access.
+
+---
+
+## 🆚 Comparison Table
+
+| Feature                  | **Global Accelerator**             | **CloudFront**                    |
+| ------------------------ | ---------------------------------- | --------------------------------- |
+| **Primary purpose**      | Network performance optimization   | Content delivery (static/dynamic) |
+| **Protocol support**     | TCP, UDP                           | HTTP, HTTPS                       |
+| **Caching**              | ❌ No                               | ✅ Yes                             |
+| **Use case example**     | Gaming server, global API gateway  | Video streaming, website assets   |
+| **Latency optimization** | ✅ Yes (routing via edge locations) | ✅ Yes (caching at edge)           |
+| **Static IPs**           | ✅ Yes                              | ❌ No                              |
+| **Security**             | IAM, Shield, WAF (via ALB/NLB)     | IAM, CloudFront WAF, OAC/OAI      |
+| **Geo routing**          | ✅                                  | ✅ (limited; mostly via Route 53)  |
+
+---
+
+## 📝 Summary
+
+* Use **Global Accelerator** to **accelerate non-HTTP traffic**, ensure **global failover**, and use **static IPs** for your apps.
+* Use **CloudFront** when serving **web content** (like images, JS, CSS, videos, APIs) and benefit from **caching** and **origin shielding**.
+
+---
+An **Origin Access Identity (OAI)** is a feature in Amazon CloudFront that enhances the security of your Amazon S3 content by restricting direct public access. Instead of allowing users to access your S3 bucket directly, OAI ensures that only CloudFront can retrieve content from your S3 origin.([Orca Security][1], [CloudDefense.AI][2])
+
+---
+
+### 🔐 What Is an Origin Access Identity (OAI)?
+
+An OAI is a special CloudFront user that you associate with your distribution. By updating your S3 bucket policy to grant read permissions solely to this identity, you prevent users from bypassing CloudFront and accessing your content directly via S3 URLs. This setup ensures that all access to your S3 content goes through CloudFront, allowing you to leverage its caching, logging, and access control features .([Scaler][3])
+
+---
+
+### ✅ Benefits of Using OAI
+
+* **Enhanced Security**: Blocks unauthorized direct access to your S3 bucket.
+* **Access Control**: Ensures that only CloudFront can fetch content from your S3 origin.
+* **Prevention of Hotlinking**: Stops others from embedding your assets directly via S3 URLs.
+* **Improved Content Delivery**: Leverages CloudFront's caching and distribution capabilities for faster content delivery.([Orca Security][1])
+
+---
+
+### ⚠️ Transition to Origin Access Control (OAC)
+
+While OAI has been instrumental in securing S3 origins, AWS has introduced **Origin Access Control (OAC)** as its successor. OAC offers enhanced security features and broader functionality:([Amazon Web Services, Inc.][4])
+
+* **Support for All AWS Regions**: Including newer opt-in regions.
+* **Integration with SSE-KMS**: Supports Amazon S3 server-side encryption with AWS KMS.
+* **Dynamic Request Support**: Handles HTTP methods like PUT, POST, and DELETE.
+* **Improved Security Practices**: Utilizes short-term credentials and frequent rotations .([AWS Documentation][5], [Amazon Web Services, Inc.][4])
+
+AWS recommends migrating from OAI to OAC to take advantage of these features and to future-proof your content delivery setup .
+
+---
+
 
 # 🪐 ADVANCED VPC Networking
 
