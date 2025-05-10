@@ -6548,6 +6548,7 @@ Output to S3 / Redshift / Athena
 * Use **Global Accelerator** to **accelerate non-HTTP traffic**, ensure **global failover**, and use **static IPs** for your apps.
 * Use **CloudFront** when serving **web content** (like images, JS, CSS, videos, APIs) and benefit from **caching** and **origin shielding**.
 
+![alt text](img/CloudFrontandGA.png)
 ---
 An **Origin Access Identity (OAI)** is a feature in Amazon CloudFront that enhances the security of your Amazon S3 content by restricting direct public access. Instead of allowing users to access your S3 bucket directly, OAI ensures that only CloudFront can retrieve content from your S3 origin.([Orca Security][1], [CloudDefense.AI][2])
 
@@ -6669,6 +6670,58 @@ AWS recommends migrating from OAI to OAC to take advantage of these features and
 - Endpoint **Zonal DNS**
 - Applications can optionally use these or
 - **PrivateDNS overrides** the **default DNS for services**
+---
+**VPC Endpoints** in AWS allow private connections between your Virtual Private Cloud (VPC) and supported AWS services or VPC endpoint services **without requiring an internet gateway, NAT device, VPN connection, or AWS Direct Connect**. They improve security and reduce exposure to the internet.
+
+There are **two main types of VPC endpoints**:
+
+---
+
+### 1. **Interface Endpoint**
+
+* **Definition**: An elastic network interface (ENI) with a private IP from your subnet that serves as an entry point.
+* **Use case**: For services like **S3**, **DynamoDB**, **Secrets Manager**, **SSM**, etc.
+* **Traffic**: Stays entirely within AWS using **PrivateLink**.
+* **Supports**: Most AWS services and custom services.
+
+**Example**:
+
+```bash
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-12345678 \
+  --service-name com.amazonaws.us-east-1.secretsmanager \
+  --vpc-endpoint-type Interface \
+  --subnet-ids subnet-abc123 subnet-def456 \
+  --security-group-ids sg-7890abcd
+```
+
+---
+
+### 2. **Gateway Endpoint**
+
+* **Definition**: A gateway target that is routed via route tables.
+* **Use case**: Only for **Amazon S3** and **DynamoDB**.
+* **Traffic**: Handled at the VPC level using route table entries.
+* **Cost-effective**: No per-hour charges.
+
+**Example**:
+
+```bash
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-12345678 \
+  --service-name com.amazonaws.us-east-1.s3 \
+  --vpc-endpoint-type Gateway \
+  --route-table-ids rtb-1234abcd
+```
+
+---
+
+### Benefits of VPC Endpoints
+
+* No need for NAT gateways or internet gateways.
+* More secure access to AWS services.
+* Reduced latency and cost.
+---
 
 ### Architecture
 
@@ -6694,7 +6747,45 @@ AWS recommends migrating from OAI to OAC to take advantage of these features and
 ### Architecture
 
 ![Untitled](img/Untitled%20168.png)
+---
+**VPC Peering** in AWS enables you to **connect two Virtual Private Clouds (VPCs)** to route traffic between them privately using AWS’s internal network.
 
+---
+
+### 🔧 **Key Characteristics**
+
+* **Private communication**: No public internet; traffic stays within AWS.
+* **One-to-one relationship**: Peering is between **two VPCs** only.
+* **Same or different AWS accounts/regions**.
+* **Transitive routing not supported**: If VPC-A is peered with VPC-B, and B with C, A **cannot** access C.
+* **Uses route tables**: You must update route tables in both VPCs to enable communication.
+
+---
+
+### ✅ **Use Cases**
+
+* Connecting microservices across different VPCs.
+* Accessing shared resources (databases, APIs) from another VPC.
+* Isolating environments (dev/stage/prod) while enabling secure communication.
+
+---
+
+### 🔒 **Security**
+
+* No overlapping CIDR blocks allowed.
+* Security groups and NACLs still apply.
+* No DNS resolution across VPCs by default (can be enabled for intra-region peering).
+
+---
+
+### 🔄 **Alternatives**
+
+* **Transit Gateway** (hub-and-spoke model, supports thousands of VPCs).
+* **PrivateLink** (for exposing services across VPCs without full peering).
+
+---
+![alt text](img/VPC-Peering.png)
+---
 
 
 # 🏞️ Hybrid Environments and Migration
