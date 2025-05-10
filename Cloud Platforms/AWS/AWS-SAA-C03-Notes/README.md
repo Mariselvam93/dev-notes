@@ -8706,6 +8706,7 @@ Amazon DynamoDB is a fully managed, serverless NoSQL database service provided b
 * **Amazon Fraud Detector**: Detects online fraud using machine learning models customized to your data.
 ---
 Here’s a **comparison table** of the mentioned AWS AI/ML services, focusing on their **primary purpose, input type, and key features**:
+---
 
 | **Service**               | **Purpose**                                 | **Input Type**               | **Key Features**                                                              |
 | ------------------------- | ------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
@@ -8829,18 +8830,52 @@ Here’s a **comparison table** of the mentioned AWS AI/ML services, focusing on
 ### Amazon DocumentDB
 
 - MongoDB
-
+---
 ### Amazon Workspaces
+**Amazon WorkSpaces** is a fully managed **Desktop-as-a-Service (DaaS)** solution that lets you provision **virtual, cloud-based desktops** for users.
+
+### Real-World Use Case:
+
+A global company provides secure Windows desktops to remote employees and contractors without managing physical hardware, enabling quick onboarding and scalable access.
+
+### Quick Comparison:
+
+| **Feature**      | **Amazon WorkSpaces**                                 |
+| ---------------- | ----------------------------------------------------- |
+| **Purpose**      | Virtual desktop infrastructure (VDI) in the cloud     |
+| **Use Case**     | Secure access to Windows/Linux desktops from anywhere |
+| **Input**        | User credentials + cloud apps/data                    |
+| **Output**       | Fully functional desktop environment                  |
+| **Key Benefits** | Scalable, secure, managed desktops, cost-efficient    |
+
+---
 
 ### Amazon EMR (Elastic MapReduce)
 
 > ***Easily run and scale Apache Spark, Hive, Presto, and other big data workloads***
 > 
-
+---
 ### Elastic Network Adapter
 
 - ENA is **a custom network interface optimized to deliver high throughput and packet per second (PPS) performance, and consistently low latencies on EC2 instances**.
 
+**Elastic Network Adapter (ENA)** is a **high-performance network interface** designed by AWS to provide **enhanced networking** capabilities for EC2 instances.
+
+### Real-World Use Case:
+
+A data analytics company uses ENA-enabled EC2 instances to transfer petabytes of data with **high throughput (up to 100 Gbps)** and **low latency**, improving job performance and reducing costs.
+
+### Quick Comparison Table:
+
+| **Feature**             | **Elastic Network Adapter (ENA)**                           |
+| ----------------------- | ----------------------------------------------------------- |
+| **Purpose**             | High-performance network interface for EC2                  |
+| **Use Case**            | Applications needing low-latency, high-throughput network   |
+| **Throughput**          | Up to 100 Gbps                                              |
+| **Supported Instances** | Nitro-based EC2 instances                                   |
+| **Key Benefits**        | Scalable bandwidth, low jitter, kernel bypass (with SR-IOV) |
+
+---
 ### **Elastic Fabric Adapter**
 
 - Run HPC and ML applications at scale
