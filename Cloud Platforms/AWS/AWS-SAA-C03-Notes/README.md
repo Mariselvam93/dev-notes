@@ -7971,6 +7971,95 @@ Let’s say your company is developing a financial services application that pro
 - Changes can generate SNS notifications and near-real time events via EventBridge & Lambda
 
 ![Untitled](img/Untitled%20200.png)
+---
+**AWS Config** is a fully managed service that enables you to **assess**, **audit**, and **evaluate** the configurations of your AWS resources. It helps you track configuration changes, maintain compliance, and troubleshoot operational issues by providing a detailed view of the configuration history and relationships between your resources.
+
+---
+
+### ✅ **Key Features of AWS Config**
+
+1. **Resource Inventory & Configuration History**
+
+   * Automatically records the configuration of supported AWS resources (e.g., EC2, S3, IAM, VPC).
+   * Maintains a **historical record** of configurations for audit and change tracking.
+
+2. **Configuration Change Tracking**
+
+   * Detects and logs changes to resource configurations over time.
+   * Helps you **answer "who made this change and when?"**
+
+3. **Compliance as Code**
+
+   * Use **AWS Config Rules** to evaluate resource configurations against best practices or organizational policies (e.g., "S3 buckets must not be public").
+   * Supports **managed rules** (predefined by AWS) and **custom rules** (written in Lambda).
+
+4. **Relationship Tracking**
+
+   * Shows **relationships between resources**, such as which security group is attached to which EC2 instance.
+
+5. **Snapshot and Timeline View**
+
+   * Visualizes the **timeline of changes** to a resource for troubleshooting or auditing.
+
+6. **Integration with AWS Systems Manager & AWS Organizations**
+
+   * Centrally manage compliance across multiple accounts using **AWS Config Aggregators**.
+   * Works with **AWS Systems Manager OpsCenter** for remediation.
+
+---
+
+### 🔍 **Use Cases**
+
+* **Security and Compliance Auditing**: Ensure resources are configured securely and in line with regulatory frameworks (e.g., HIPAA, PCI-DSS).
+* **Operational Troubleshooting**: Investigate when and how a resource was changed to diagnose issues.
+* **Governance**: Enforce policies (e.g., all IAM users must have MFA enabled).
+* **Change Management**: Track changes in DevOps environments for CI/CD pipeline integrity.
+
+---
+
+### 🛠️ **How It Works**
+
+1. **Enable AWS Config** via the Console, CLI, or SDK.
+2. Specify:
+
+   * The resources and regions to monitor.
+   * The S3 bucket for configuration snapshots.
+   * An SNS topic (optional) for notifications.
+3. Optionally, define **Config Rules** to evaluate compliance.
+4. View configuration snapshots, timelines, compliance dashboards, and rule results.
+
+---
+
+### 🧩 **Examples of AWS Config Rules**
+
+* `s3-bucket-public-read-prohibited`: Ensures S3 buckets are not publicly readable.
+* `ec2-instance-no-public-ip`: Checks EC2 instances for public IP addresses.
+* `iam-user-mfa-enabled`: Ensures IAM users have multi-factor authentication enabled.
+
+---
+
+### 💵 **Pricing**
+
+AWS Config charges based on:
+
+* **Number of recorded configuration items** per region.
+* **Number of evaluations** for Config Rules.
+* Aggregators and advanced queries may incur additional charges.
+
+---
+
+### 🚀 Real-World Example
+
+A healthcare company must comply with HIPAA. Using AWS Config:
+
+* They track all IAM users to ensure they have MFA enabled (`iam-user-mfa-enabled`).
+* They enforce encrypted EBS volumes (`ebs-encryption-by-default`).
+* Any non-compliant resource triggers a Lambda function for auto-remediation.
+
+---
+
+
+
 
 ## Amazon Macie
 
