@@ -8142,7 +8142,7 @@ A healthcare company must comply with HIPAA. Using AWS Config:
 - Templates are used to create **stacks**
     - Can create one or multiple
 - Stacks create **physical resources** from the logical
-- If a stacks template is change physical resources are changed
+- If a stacks template is changed, physical resources are changed
 - If a stack is deleted, normally, the physical resources are deleted
 
 ![Untitled](img/Untitled%20203.png)
