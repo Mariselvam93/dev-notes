@@ -5760,6 +5760,162 @@ Urgent tasks (e.g., alert notifications) get processed before background analyti
 - Integrates with other AWS services e.e.g **Rekognition** and **Connect**
 
 ![Untitled](img/Untitled%20147.png)
+---
+
+## 🚀 **Amazon Kinesis Overview**
+
+Kinesis lets you **ingest, buffer, and analyze streaming data** (e.g., logs, IoT data, video, social media feeds) in real-time, enabling near-instant insights.
+
+Kinesis has 4 major components:
+
+---
+
+## 1. 📊 **Kinesis Data Streams (KDS)**
+
+> A scalable and durable real-time data streaming service.
+
+### 🔹 Features:
+
+* Real-time ingestion of data (millions of records per second).
+* Stores data in **shards** (each shard supports 1 MB/s input & 2 MB/s output).
+* Data is **available for 24 hours** (can extend up to 7 days).
+* Consumers use **Kinesis SDK, Lambda, or KCL** to process data.
+
+### 📦 Use Cases:
+
+* Real-time log processing
+* Clickstream analytics
+* Fraud detection
+* Sensor/IoT stream handling
+
+---
+
+## 2. 🔥 **Kinesis Data Firehose**
+
+> A fully managed service to **load streaming data into AWS destinations** — **no coding or provisioning required**.
+
+### 🔹 Features:
+
+* Auto-scales to match throughput.
+* Supports data delivery to:
+
+  * S3
+  * Redshift
+  * OpenSearch
+  * Splunk
+* Allows optional **data transformation using Lambda**.
+
+### 📦 Use Cases:
+
+* Real-time ETL (Extract, Transform, Load)
+* Log storage & analytics
+* Data lake ingestion
+
+---
+
+## 3. 🎥 **Kinesis Video Streams (KVS)**
+
+> Used for **real-time video ingestion, processing, and storage**.
+
+### 🔹 Features:
+
+* Streams video from connected devices (e.g., cameras, drones).
+* Supports real-time **ML-based processing** (e.g., object detection).
+* Data is stored durably and can be replayed.
+
+### 📦 Use Cases:
+
+* Smart surveillance
+* Live video streaming
+* Industrial automation (machine vision)
+
+---
+
+## 4. 📈 **Kinesis Data Analytics (KDA)**
+
+> Enables **real-time data analysis** on data from **Kinesis Data Streams or Firehose** using **SQL or Apache Flink**.
+
+### 🔹 Features:
+
+* Run SQL queries on streaming data.
+* Detect anomalies, aggregates, filters in real-time.
+* Integrates with Lambda and Firehose for downstream actions.
+
+### 📦 Use Cases:
+
+* Real-time dashboards
+* Alerting systems
+* Time-series aggregations
+
+---
+
+## 🧩 How They Work Together
+
+**Example Workflow:**
+
+```text
+IoT Device ➜ Kinesis Data Streams ➜ Kinesis Data Analytics ➜ Firehose ➜ S3/Redshift
+```
+
+---
+
+## 🔄 Summary Table
+
+| Service            | Purpose                                     | Destinations/Consumers           |
+| ------------------ | ------------------------------------------- | -------------------------------- |
+| **Data Streams**   | Real-time ingest & buffering                | Lambda, KCL, Analytics           |
+| **Data Firehose**  | Fully managed ETL pipeline                  | S3, Redshift, OpenSearch         |
+| **Video Streams**  | Video ingestion & storage                   | SageMaker, ML models, apps       |
+| **Data Analytics** | Real-time SQL/Flink-based stream processing | Firehose, Lambda, custom actions |
+
+---
+---
+
+## 🔁 **Kinesis vs SQS – High-Level Comparison**
+
+| Feature                  | **Amazon Kinesis**                                       | **Amazon SQS**                                                |
+| ------------------------ | -------------------------------------------------------- | ------------------------------------------------------------- |
+| **Purpose**              | Real-time **data streaming and processing**              | **Message queuing** to decouple microservices                 |
+| **Processing Model**     | **Stream-based** (multiple consumers can read same data) | **Queue-based** (each message is processed once per consumer) |
+| **Message Retention**    | Default 24 hours (up to 7 days for KDS)                  | 1 minute to 14 days                                           |
+| **Ordering**             | FIFO possible in **Kinesis** (via shard ordering)        | Native FIFO queues available                                  |
+| **Throughput**           | Extremely high (1000s of records/sec per shard)          | Moderate (depends on message size, batching)                  |
+| **Replayability**        | Yes (can reprocess from past timestamp)                  | No (once deleted, messages are gone)                          |
+| **Latency**              | Milliseconds (for real-time data)                        | Seconds (due to polling, unless long polling is used)         |
+| **Integration**          | Analytics, Lambda, Firehose, S3, Flink                   | Lambda, Step Functions, EC2, containers                       |
+| **Data Size per Record** | Up to **1 MB** per record                                | Up to **256 KB** per message                                  |
+| **Delivery Semantics**   | At least once (or exactly once with Flink)               | At least once; exactly-once with FIFO                         |
+| **Cost Model**           | Based on shards & PUT payload units                      | Based on number of requests and payload size                  |
+
+---
+
+## 🧾 Example Use Cases
+
+| Scenario                        | Use **Kinesis**                       | Use **SQS**                   |
+| ------------------------------- | ------------------------------------- | ----------------------------- |
+| Real-time log aggregation       | ✅                                     | ❌ (batch-based)               |
+| Video or sensor data processing | ✅ (Kinesis Video Streams)             | ❌                             |
+| Email or notification queuing   | ❌                                     | ✅                             |
+| Background job scheduling       | ❌                                     | ✅                             |
+| Decoupling microservices        | ⚠️ (Possible, but overkill)           | ✅ (primary use case)          |
+| Stream analytics / windowing    | ✅ (Kinesis Data Analytics or Flink)   | ❌                             |
+| One-to-many data delivery       | ✅ (multiple consumers read same data) | ❌ (each message handled once) |
+
+---
+
+## 🧠 When to Use What?
+
+| If You Need...                        | Use          |
+| ------------------------------------- | ------------ |
+| Real-time processing with replay      | **Kinesis**  |
+| Simple point-to-point async messaging | **SQS**      |
+| Message ordering with deduplication   | **SQS FIFO** |
+| High-throughput data ingestion        | **Kinesis**  |
+| Retry/failure handling with DLQ       | **SQS**      |
+
+---
+
+
 
 ## Amazon Cognito - User and Identity Pools
 
@@ -5789,6 +5945,82 @@ Urgent tasks (e.g., alert notifications) get processed before background analyti
 ### Architecture: User & Identity Pools
 
 ![Untitled](img/Untitled%20150.png)
+---
+### 🔐 **Amazon Cognito** – Overview
+
+**Amazon Cognito** is a fully managed **user authentication, authorization, and user management** service provided by AWS. It is often used in mobile and web applications to add **sign-up, sign-in, and access control** functionality.
+
+---
+
+## 🧱 **Core Components**
+
+### 1. **User Pools (Authentication)**
+
+* **Purpose**: User directory for handling user registration and sign-in.
+* **Supports**:
+
+  * Email/Phone + password
+  * Social logins (Google, Facebook, Apple)
+  * SAML/OpenID Connect identity providers
+* **MFA, email/phone verification**, password policies
+* Tokens: **ID token**, **Access token**, **Refresh token**
+
+### 2. **Identity Pools (Authorization)**
+
+* **Purpose**: Grants **temporary AWS credentials** to access AWS services (via IAM roles).
+* Federates identities from:
+
+  * Cognito User Pools
+  * Social logins (Facebook, Google, etc.)
+  * SAML providers
+  * Anonymous guest users
+
+> 🔄 Identity Pools use **STS** to provide access to AWS services based on user identity.
+
+---
+
+## 🔐 **How It Works Together**
+
+```text
+User signs in ➜ Cognito User Pool authenticates ➜ Token issued ➜ Identity Pool exchanges token for temporary AWS credentials ➜ Access AWS services securely
+```
+
+---
+
+## ✅ **Key Features**
+
+| Feature                         | Description                                               |
+| ------------------------------- | --------------------------------------------------------- |
+| **Secure Authentication**       | Sign-up/sign-in, password policies, 2FA (SMS or TOTP)     |
+| **Federated Identities**        | Login with Google, Facebook, SAML, OIDC                   |
+| **User Directory**              | Fully managed user profile store                          |
+| **Token-based Access**          | JWT tokens (ID, access, refresh) for secure API access    |
+| **Custom Attributes/Triggers**  | Customize sign-in, pre/post auth with **Lambda triggers** |
+| **User Pools + Identity Pools** | Combine for both auth and AWS resource access             |
+
+---
+
+## 📦 **Example Use Case**
+
+A **React web app** with:
+
+* Cognito **User Pool** for registration/login
+* **Identity Pool** to give authenticated users **temporary access to S3** and DynamoDB
+* **Cognito Triggers** (Lambda) to verify emails, log signups
+
+---
+
+## 🧠 Cognito vs Alternatives
+
+| Feature         | Cognito                   | Auth0 / Firebase / Okta         |
+| --------------- | ------------------------- | ------------------------------- |
+| Managed by AWS  | ✅                         | ❌ (third-party)                 |
+| IAM Integration | ✅ (temporary credentials) | ❌ (custom backend logic needed) |
+| Federated Id    | ✅                         | ✅                               |
+| Customization   | Lambda Triggers           | Webhooks / Rules                |
+| Cost            | Free tier + pay-as-you-go | Often higher or usage-tiered    |
+
+---
 
 ## AWS Glue
 
@@ -5798,9 +6030,9 @@ Urgent tasks (e.g., alert notifications) get processed before background analyti
     - vs data pipeline (which can do ETL) and users servers (EMR)
 - Moves and transforms data between source and destination
 - **Crawls** data sources and generates the **AWS Glue Data catalog**
-- Data source**: Stores**: S3, RDS, JDBC Compatible and DynamoDB
-- Data source: **Streams:** Kinesis Data Stream & Apache Kafka
-- Data **Targets:** S3, RDS, JDBC Databases
+- **Data source: Stores:** S3, RDS, JDBC Compatible and DynamoDB
+- **Data source: Streams:** Kinesis Data Stream & Apache Kafka
+- **Data Targets:** S3, RDS, JDBC Databases
 
 ### Data Catalog
 
@@ -5813,6 +6045,101 @@ Urgent tasks (e.g., alert notifications) get processed before background analyti
 ### AWS Glue
 
 ![Untitled](img/Untitled%20151.png)
+---
+### 🧪 **Amazon Glue** – Overview
+
+**AWS Glue** is a fully managed **ETL (Extract, Transform, Load)** and **data integration** service that helps you prepare and move data for analytics, machine learning, and application development.
+
+It automates much of the effort involved in:
+
+* **Discovering** data
+* **Transforming** it
+* **Preparing** it for analytics (e.g., in Redshift, S3, Athena)
+
+---
+
+## 🔧 **Key Components**
+
+### 1. 🔍 **Data Catalog**
+
+* Central metadata repository to store **schema**, **data source**, and **table** info.
+* Integrated with **Athena, Redshift Spectrum, EMR, and Lake Formation**.
+* Tables and partitions are automatically discovered via **crawlers**.
+
+---
+
+### 2. 🧹 **Glue ETL Jobs**
+
+* Code-based or visual (no-code) **ETL workflows**.
+* Jobs can be written in **Python or Scala** using **Apache Spark** under the hood.
+* Serverless: No provisioning needed, just submit jobs.
+
+---
+
+### 3. 🕷️ **Glue Crawlers**
+
+* Automatically scan data sources (S3, JDBC, DynamoDB) and infer schema.
+* Creates or updates tables in the Data Catalog.
+
+---
+
+### 4. 🔁 **Glue Workflows**
+
+* Orchestrate multiple jobs, crawlers, triggers in a **dependency graph**.
+* Helps build **end-to-end ETL pipelines** with error handling and retry logic.
+
+---
+
+### 5. 📊 **Glue DataBrew**
+
+* Visual, no-code tool for **data wrangling and transformation**.
+* Ideal for business analysts and data scientists who don’t want to write code.
+
+---
+
+### 6. 💡 **Glue Studio**
+
+* Visual editor to create, run, and monitor ETL jobs.
+* Drag-and-drop transformations for a **low-code experience**.
+
+---
+
+## 🚀 Common Use Cases
+
+| Use Case                              | How Glue Helps                                      |
+| ------------------------------------- | --------------------------------------------------- |
+| Data lake preparation (S3 → Redshift) | Crawlers + ETL Jobs                                 |
+| Schema discovery                      | Crawlers auto-detect schemas                        |
+| Log processing                        | Clean, enrich, and structure raw logs for analytics |
+| Machine learning pipelines            | Preprocess and transform training datasets          |
+| Cross-source data integration         | Combine and join from RDS, S3, and DynamoDB         |
+
+---
+
+## 📦 Sample Workflow
+
+```text
+Raw Data in S3
+   ⬇ (Crawler)
+AWS Glue Data Catalog (schema created)
+   ⬇ (ETL Job)
+Cleaned & Transformed Data
+   ⬇
+Output to S3 / Redshift / Athena
+```
+
+---
+
+## 🔄 Glue vs Other Tools
+
+| Feature               | AWS Glue              | AWS Data Pipeline / Lambda ETL | Apache Airflow |
+| --------------------- | --------------------- | ------------------------------ | -------------- |
+| Serverless            | ✅                     | ❌ (Data Pipeline) / ✅ (Lambda) | ❌              |
+| Code-Free Option      | ✅ (DataBrew / Studio) | ❌                              | ❌              |
+| Auto Schema Discovery | ✅ (Crawlers)          | ❌                              | ❌              |
+| Job Orchestration     | ✅ (Workflows)         | Partial                        | ✅              |
+
+---
 
 ## Amazon MQ
 
@@ -5866,6 +6193,79 @@ Urgent tasks (e.g., alert notifications) get processed before background analyti
 
 ![Untitled](img/Untitled%20153.png)
 
+---
+### 🔁 **Amazon AppFlow** – Overview
+
+**Amazon AppFlow** is a **fully managed integration service** that enables you to **securely transfer data between SaaS applications (like Salesforce, Zendesk, Google Analytics, etc.) and AWS services (like S3, Redshift, and Snowflake)** — without writing code.
+
+---
+
+## 🧱 **Core Features**
+
+| Feature                 | Description                                                                |
+| ----------------------- | -------------------------------------------------------------------------- |
+| **No-code setup**       | Point-and-click UI for setting up flows between services                   |
+| **Bi-directional flow** | Move data **to and from** AWS and SaaS apps                                |
+| **Data transformation** | Built-in **filtering, mapping, validation**, and **masking** capabilities  |
+| **Event-driven**        | Trigger flows **on demand, schedule**, or via **event** (e.g., new record) |
+| **Encryption**          | All data encrypted in transit and at rest (KMS support)                    |
+| **Data destinations**   | S3, Redshift, Snowflake, Salesforce, etc.                                  |
+
+---
+
+## 🔌 **Supported Sources and Destinations**
+
+| SaaS Sources                | AWS Destinations           |
+| --------------------------- | -------------------------- |
+| Salesforce                  | Amazon S3                  |
+| Google Analytics 4 / Looker | Amazon Redshift            |
+| Zendesk, ServiceNow, Slack  | Amazon EventBridge         |
+| SAP, Marketo, Facebook Ads  | Amazon AppFlow (loop-back) |
+
+> You can also move data between **two SaaS platforms** (e.g., Salesforce → Zendesk) via AppFlow.
+
+---
+
+## 🛠️ **How It Works**
+
+1. **Choose source and destination**
+2. **Select trigger**: On-demand, event, or scheduled
+3. **Apply filters and mappings**
+4. **Run and monitor the flow** via AppFlow dashboard
+
+---
+
+## 📦 **Example Use Case**
+
+### 🔄 *Sync Salesforce data to Amazon Redshift for analytics*
+
+* **Source**: Salesforce
+* **Destination**: Redshift
+* **Trigger**: Every hour
+* **Transform**: Rename `ContactName` → `CustomerName`, filter inactive users
+* **Use**: BI tools like QuickSight or Athena for reporting
+
+---
+
+## 🔍 AppFlow vs Glue vs Step Functions
+
+| Feature             | **AppFlow** | **Glue**           | **Step Functions**    |
+| ------------------- | ----------- | ------------------ | --------------------- |
+| No-code data sync   | ✅           | ❌ (code-heavy)     | ❌ (for orchestration) |
+| Built-in connectors | ✅           | Limited            | ❌                     |
+| Trigger-based flow  | ✅           | Partial (via jobs) | ✅                     |
+| Complex workflows   | ❌           | ✅                  | ✅                     |
+
+---
+
+## ✅ When to Use AppFlow
+
+* You want to sync **Salesforce, Zendesk, or Google Analytics data to AWS** easily.
+* You want to set up a flow with **no infrastructure or coding**.
+* You need **near real-time** SaaS → AWS movement for BI, ML, or backups.
+---
+![alt text](img/AppFlow.png)
+---
 
 
 # 🌍 **GLOBAL CONTENT DELIVERY AND OPTIMIZATION**
@@ -5932,7 +6332,7 @@ Urgent tasks (e.g., alert notifications) get processed before background analyti
 
 ## AWS Certificate Manager (ACM)
 
-> *The AWS certificate Manage is a service which allows the creation, management and renewal of certificates. It allows deployment of certificates onto supported AWS services such as CloudFront and ALB.*
+> *The AWS certificate Manager is a service which allows the creation, management and renewal of certificates. It allows deployment of certificates onto supported AWS services such as CloudFront and ALB.*
 > 
 - HTTP: Simple and Insecure
 - HTTPS: SSL/TLS Layer of Encryption added to HTTP
