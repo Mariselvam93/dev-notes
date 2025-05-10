@@ -2313,6 +2313,66 @@ KMS Keys - aws/ebs or customer managed
     - **No performance loss!**
 - If you need the OS to encrypt things, you must configure volume encryption (software disk encryption) by yourself
 
+---
+**Amazon EBS (Elastic Block Store)** is a **block storage** service designed for use with **EC2 instances**. It provides **durable, high-performance** storage volumes that behave like raw, unformatted block devices. These volumes persist independently of the EC2 instance lifecycle.
+
+---
+
+## 🔑 **Key Features**
+
+* **Persistent**: Data is retained even after instance termination (if not deleted).
+* **Encrypted**: Supports in-transit and at-rest encryption using AWS KMS.
+* **Snapshot support**: Easily back up volumes to S3.
+* **Scalable**: Volumes can be resized or reconfigured with minimal downtime.
+* **Attachable**: One volume can be attached to a single EC2 instance (multi-attach for some types).
+
+---
+
+## 🧱 **EBS Volume Types**
+
+| Volume Type | Description                                       | Use Case                            | Max IOPS        | Max Throughput |
+| ----------- | ------------------------------------------------- | ----------------------------------- | --------------- | -------------- |
+| **gp3**     | General-purpose SSD (latest generation)           | Most workloads                      | 16,000          | 1,000 MB/s     |
+| **gp2**     | Previous-generation general-purpose SSD           | General use (replaced by gp3)       | 16,000 (scales) | 250 MB/s       |
+| **io2**     | Provisioned IOPS SSD (higher durability: 99.999%) | I/O-intensive workloads             | 64,000          | 1,000 MB/s     |
+| **io1**     | Older version of io2                              | Legacy high-performance needs       | 64,000          | 1,000 MB/s     |
+| **st1**     | Throughput-optimized HDD                          | Big data, log processing, streaming | \~500 IOPS      | 500 MB/s       |
+| **sc1**     | Cold HDD (lowest cost)                            | Infrequent access, archival         | \~250 IOPS      | 250 MB/s       |
+
+---
+
+### 📊 Quick Selection Guide
+
+| Use Case                       | Best Volume Type |
+| ------------------------------ | ---------------- |
+| Boot volumes, dev/test systems | gp3              |
+| Databases, OLTP workloads      | io2              |
+| Data warehousing, big data     | st1              |
+| Backup storage, cold data      | sc1              |
+
+---
+
+## 💾 **Snapshots & Backup**
+
+* Snapshots are stored in **S3**.
+* They can be used to **create new volumes**, **restore data**, or **move across regions**.
+* Integrated with **AWS Backup** for scheduled backups and lifecycle management.
+
+---
+
+## 🛡️ **Security**
+
+* **KMS-based encryption** (AES-256)
+* Encrypted volumes also encrypt data in transit and all snapshots automatically
+
+---
+
+## 💡 Tips
+
+* Always prefer **gp3** over **gp2** — more cost-effective with configurable performance.
+* Use **multi-attach** (with `io1/io2`) to attach a single volume to multiple EC2s in clustered applications.
+
+---
 ## (Elastic) Network Interfaces, Instance IPs and DNS
 
 ### EC2 Network & DNS Architecture
@@ -3329,7 +3389,7 @@ This is a summary of **limitations and features** specific to **AWS EC2 Dedicate
 
 ## Enhanced Networking & EBS Optimized
 
-> *Enhanced networking is the AWS implementation of SR-IOV, a standard allowing a physical host network card to present many logical devices which can be directly utilized by instances.*
+> *Enhanced networking is the AWS implementation of SR-IOV (Single Root IO Virtualization), a standard allowing a physical host network card to present many logical devices which can be directly utilized by instances.*
 > 
 > 
 > *This means lower host CPU usage, better throughput, lower and consistent latency*
@@ -5474,6 +5534,146 @@ https://docs.aws.amazon.com/apigateway/latest/api/CommonErrors.html
 > 
 
 ![Untitled](img/Untitled%20143.png)
+
+---
+**Amazon SQS (Simple Queue Service)** is a fully managed **message queuing service** that enables **decoupling and scaling** of microservices, distributed systems, and serverless applications.
+
+---
+
+## 📨 **Why Use SQS?**
+
+* Decouples producers and consumers.
+* Improves fault tolerance and resiliency.
+* Supports delayed processing, retries, and dead-letter queues.
+
+---
+
+## 🔀 **Types of SQS Queues**
+
+| Queue Type         | Description                                                             | Use Cases                                          |
+| ------------------ | ----------------------------------------------------------------------- | -------------------------------------------------- |
+| **Standard Queue** | High throughput, at-least-once delivery, possible out-of-order messages | Most applications (e.g., order processing, emails) |
+| **FIFO Queue**     | First-In-First-Out ordering, exactly-once processing guarantees         | Payment processing, inventory management           |
+
+---
+
+## 🆚 **Standard vs FIFO Queues**
+
+| Feature           | Standard Queue   | FIFO Queue                                   |
+| ----------------- | ---------------- | -------------------------------------------- |
+| **Message Order** | Best-effort      | Strict (first in, first out)                 |
+| **Delivery**      | At least once    | Exactly once                                 |
+| **Throughput**    | Nearly unlimited | 300 msg/s (with batching: 3,000/s)           |
+| **Deduplication** | Not supported    | Built-in (based on `MessageDeduplicationId`) |
+| **Cost**          | Lower            | Slightly higher                              |
+
+---
+
+## 🧾 **Basic Workflow**
+
+1. **Producer** sends messages to the queue.
+2. **SQS stores** the messages redundantly across multiple AZs.
+3. **Consumer** polls the queue and processes the message.
+4. **Message is deleted** once processed successfully.
+
+---
+
+## 🛠️ **Key Features**
+
+* **Dead-letter queues**: Catch failed messages for analysis.
+* **Visibility timeout**: Prevent multiple consumers from processing the same message simultaneously.
+* **Delay queues**: Delay the delivery of all messages by up to 15 minutes.
+* **Long polling**: Reduce costs by waiting for messages to arrive (vs. frequent polling).
+
+---
+
+## 📦 **Message Structure**
+
+```json
+{
+  "MessageBody": "Order #1234 created",
+  "MessageAttributes": {
+    "orderType": {
+      "StringValue": "priority",
+      "DataType": "String"
+    }
+  }
+}
+```
+
+---
+
+## 💡 Common Use Cases
+
+* Order processing systems
+* Background job queues
+* Email/SMS sending pipelines
+* Workflow triggers with AWS Lambda or Step Functions
+---
+
+## 🔴 **Dead Letter Queue (DLQ)**
+
+A **DLQ** is a **secondary SQS queue** that stores messages that **can't be processed successfully** after a configured number of attempts.
+
+### 🛠️ **Key Configuration**
+
+* You set a **redrive policy** on the primary queue:
+
+  * **MaxReceiveCount**: Number of times a message can be received before being sent to the DLQ.
+  * **Target DLQ ARN**: The ARN of the DLQ to send failed messages.
+
+### ✅ **Benefits**
+
+* Isolates failed messages for analysis or reprocessing.
+* Prevents retries from blocking newer messages.
+* Essential for debugging and fault-tolerant systems.
+
+### 📦 **Use Case**
+
+A payment processor where failed transactions go to a DLQ after 5 retry attempts, so developers can investigate the root cause.
+
+---
+
+## ⏳ **Delay Queue**
+
+An SQS queue where **delivery of all messages** is delayed by a set amount of time (up to **15 minutes**).
+
+### 🔧 Configuration
+
+* Set `DelaySeconds` on the queue (default for all messages).
+* Can also override per message during send.
+
+### 📦 Use Case
+
+Throttle email campaigns by introducing a delay, or add wait time before processing resource-heavy operations.
+
+---
+
+## 🟨 **Priority Queues** (Not Natively Supported)
+
+SQS **does not support priority-based delivery natively**, but you can simulate it:
+
+### 🔄 **Workaround**
+
+* Create multiple queues (e.g., `high-priority`, `medium-priority`, `low-priority`)
+* Have consumers poll `high` first, then `medium`, then `low`
+
+### 📦 Use Case
+
+Urgent tasks (e.g., alert notifications) get processed before background analytics jobs.
+
+---
+
+## 🧾 Summary Table
+
+| Queue Type                   | Description                                         | Key Config Field         |
+| ---------------------------- | --------------------------------------------------- | ------------------------ |
+| **Dead Letter Queue**        | Captures failed messages after retries              | `RedrivePolicy`          |
+| **Delay Queue**              | Delays all messages by a fixed time before delivery | `DelaySeconds`           |
+| **Priority Queues** (custom) | Simulate by using multiple queues & polling order   | App-level implementation |
+| **FIFO Queue**               | Ensures message order and exactly-once delivery     | `FifoQueue = true`       |
+
+---
 
 ## Amazon Kinesis Data Streams
 
