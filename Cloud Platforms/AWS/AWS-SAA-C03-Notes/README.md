@@ -1069,6 +1069,12 @@ CloudWatch Logs is a public service and can also be utilized in an on-premises e
 * **CloudTrail** tracks **"who did what"** in your AWS account.
 * **CloudWatch** monitors **"how well it's running"**.
 ---
+![alt text](Img/CloudWatch.png)
+
+![alt text](Img/CloudTrail.png)
+
+![alt text](Img/CloudWatch-Trail-Config.png)
+---
 ## AWS Control Tower
 
 > *AWS Control Tower offers a straightforward way to set up and govern an AWS multi-account environment, following prescriptive best practices. AWS Control Tower orchestrates the capabilities of several other [AWS services](https://docs.aws.amazon.com/controltower/latest/userguide/integrated-services.html), including AWS Organizations, AWS Service Catalog, and AWS IAM Identity Center (successor to AWS Single Sign-On), to build a landing zone in less than an hour. Resources are set up and managed on your behalf.
