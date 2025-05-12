@@ -1991,9 +1991,14 @@ EC2 Architecture
 
 https://aws.amazon.com/ec2/instance-types/
 
+![alt text](Img/EC2InstanceTypeNamingConvention.png)
+
+![alt text](Img/CommonPorts.png)
+
 https://instances.vantage.sh/
 
 ![Untitled](img/Untitled%2056.png)
+
 
 ## Storage Refresher
 
@@ -2662,6 +2667,9 @@ Relogin
 
 ## EC2 Purchase Options (Launch Types)
 
+![alt text](Img/EC2PurchaseOptions.png)
+
+![alt text](Img/EC2PurchaseOptionsExample.png)
 ### On-Demand
 
 - Default
@@ -2689,7 +2697,7 @@ Relogin
 - **Bursty** capacity needs
 - **Cost sensitive** workloads
 - Anything which is **stateless**
-
+![alt text](Img/SpotFleets.png)
 ### Reserved
 
 > Long term consistent usage of EC2
