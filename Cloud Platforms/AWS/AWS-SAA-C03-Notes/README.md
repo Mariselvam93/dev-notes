@@ -299,6 +299,17 @@ us-east-1a, us-east-1b, …, us-east-1f
 * Place a database in a **private subnet**.
 * Set up NAT Gateway in a **public subnet** to allow internet access from private subnets.
 
+![alt text](Img/SubnetCalc.png)
+
+![alt text](Img/SubnetCalc2.png)
+---
+## To Calculate the CIDR:
+- Use this tool to calculate your IP Address ranges for Subnets.
+
+> https://www.ipaddressguide.com/cidr
+---
+![alt text](Img/RoutetTableForVPC.png)
+---
 ### 🔐 Security and Routing:
 
 * Subnets work with **route tables**, **NACLs (network ACLs)**, and **security groups** to control traffic flow.
@@ -1722,7 +1733,9 @@ VPC Design - End state
 - Incoming management connections arrive there
 - Then access internal VPC resources
 - Often the only way IN to a VPC
-
+---
+![alt text](Img/BastionHost.png)
+---
 ## Stateful vs Stateless Firewalls
 
 ### Transmission Control Protocol (TCP)
@@ -1799,6 +1812,9 @@ Every subnet has an associated NACL
 - Use together with Security Groups to add explicit DENY (Bad IPs/Nets)
 - Each subnet can have **ONE NACL** (default or custom)
 - A NACL can be associated with **MANY Subnet**
+---
+![alt text](Img/NACL.png)
+---
 
 ## VPC Security Groups (SG)
 
@@ -1882,7 +1898,70 @@ Reduce admin overhead*
 - ::/0 Route + IGW for bi-directional connectivity
 - ::/0 Route + Egress-Only Internet Gateway - Outbound Only
 
+---
+## Site to Site VPN
+![alt text](Img/SiteToSiteVPN.png)
 
+### 🛡️ AWS Site-to-Site VPN Overview
+
+**AWS Site-to-Site VPN** connects your **on-premises network or another cloud network** to your **Amazon VPC** securely over an **IPsec VPN connection**.
+
+---
+
+### 🔄 How It Works
+
+1. You create a **Virtual Private Gateway (VGW)** or **Transit Gateway** in your VPC.
+2. Establish a **VPN connection** to your **Customer Gateway** (your on-premises router or firewall).
+3. AWS provisions **two redundant VPN tunnels** to ensure high availability.
+4. The VPN traffic is encrypted using **IPsec**.
+
+---
+
+### ✅ Key Features
+
+| Feature             | Description                                                            |
+| ------------------- | ---------------------------------------------------------------------- |
+| **Encryption**      | Uses **IPsec (IKEv1 or IKEv2)** for secure, encrypted communication    |
+| **Redundancy**      | Provides **two VPN tunnels** per connection for **high availability**  |
+| **Routing Options** | Supports **static** or **BGP (dynamic)** routing                       |
+| **Gateway Types**   | Works with **Virtual Private Gateway** or **AWS Transit Gateway**      |
+| **Monitoring**      | Integration with **CloudWatch metrics and logs**                       |
+| **Failover**        | Automatic failover between tunnels                                     |
+| **Speeds**          | Typically supports up to **1.25 Gbps**, but actual throughput may vary |
+| **Integration**     | Compatible with on-premises **Cisco, Juniper, Palo Alto**, etc.        |
+
+---
+
+### 🧰 When to Use Site-to-Site VPN
+
+| Use Case                                   | Explanation                                                   |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| **Quick, secure hybrid connectivity**      | Fast to set up, useful for connecting on-prem networks to AWS |
+| **Backup/DR for Direct Connect**           | Acts as a **failover** option for **AWS Direct Connect**      |
+| **Low-to-moderate bandwidth requirements** | Good for workloads not requiring high throughput              |
+| **Branch office connectivity**             | Securely connect remote offices or data centers               |
+| **Testing hybrid setups**                  | Useful in **pilot or PoC stages** of cloud migration          |
+
+---
+
+### ⚙️ Components
+
+| Component                         | Description                                                  |
+| --------------------------------- | ------------------------------------------------------------ |
+| **Customer Gateway (CGW)**        | Your on-premises VPN device or software appliance            |
+| **Virtual Private Gateway (VGW)** | AWS side of the VPN; attached to your VPC                    |
+| **Transit Gateway (TGW)**         | Central hub to connect multiple VPCs and on-prem networks    |
+| **VPN Connection**                | The actual encrypted tunnel between AWS and your data center |
+
+---
+
+### 🔐 Security Considerations
+
+* Use **pre-shared keys** or **certificates** for IPsec authentication.
+* Enable **CloudWatch logs** and **VPC flow logs** for auditing and monitoring.
+* Restrict traffic using **Security Groups** and **Network ACLs**.
+
+---
 
 # 🖥 Elastic Compute Cloud (EC2) Basics
 
@@ -4864,6 +4943,9 @@ Equally distribute load to instances across AZs
 
 ![Untitled](img/Untitled%20124.png)
 
+---
+![alt text](Img/Serverless.png)
+---
 ## AWS Lambda
 
 - Function-as-a-Service (**FaaS) -** short running & focused
@@ -5018,7 +5100,8 @@ While Lambda itself is a single service, it can be **invoked in different ways**
 * **Layers**: Share libraries/dependencies across functions
 
 ---
-
+![alt text](Img/Lambda.png)
+---
 
 ## CloudWatchEvents and EventBridge
 
@@ -6735,6 +6818,8 @@ aws ec2 create-vpc-endpoint \
 * No need for NAT gateways or internet gateways.
 * More secure access to AWS services.
 * Reduced latency and cost.
+
+![alt text](Img/Endpoints.png)
 ---
 
 ### Architecture
