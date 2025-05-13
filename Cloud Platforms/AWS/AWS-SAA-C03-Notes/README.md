@@ -1032,6 +1032,17 @@ CloudWatch Logs is a public service and can also be utilized in an on-premises e
 
 ![Untitled](img/Untitled%209.png)
 
+---
+**CloudWatch Logs subscription** to OpenSearch
+Natively supported by AWS.
+
+You can set up a CloudWatch Logs subscription filter and stream logs directly to OpenSearch via Kinesis Data Firehose (behind the scenes).
+
+Minimal setup and fully managed.
+
+**Lowest operational overhead and meets the requirement effectively.**
+
+---
 ## CloudTrail Essentials
 
 ### CloudTrail Basic
@@ -1136,8 +1147,138 @@ AWS Control Tower orchestration extends the capabilities of AWS Organizations. T
 - Account can be closed or repurposed
 - Can be fully integrated with a business SDLC (Software Development Life Cycle)
 
+---
+### 🏛️ **AWS Control Tower Overview**
 
+**AWS Control Tower** is a **governance and automation service** that helps you set up and manage a **secure, multi-account AWS environment** based on **AWS best practices**.
 
+It’s especially useful for enterprises and large organizations that need to manage multiple AWS accounts with consistent security, compliance, and operational baselines.
+
+---
+
+## 🔧 Key Features of AWS Control Tower
+
+| **Feature**         | **Description**                                                                 |
+| ------------------- | ------------------------------------------------------------------------------- |
+| **Landing Zone**    | Pre-configured, secure multi-account AWS environment.                           |
+| **Account Factory** | Automated account provisioning with pre-applied configurations.                 |
+| **Guardrails**      | Predefined rules (SCPs + AWS Config rules) to enforce governance.               |
+| **Dashboard**       | Centralized view of the organizational units, guardrails, and account statuses. |
+| **Integration**     | Works with AWS Organizations, IAM Identity Center (SSO), AWS Config, SCPs, etc. |
+
+---
+
+## 📦 What Does Control Tower Set Up?
+
+When you launch Control Tower, it automates and sets up the following:
+
+1. **AWS Organizations** (with OUs – organizational units)
+2. **Shared accounts**:
+
+   * **Audit Account**: For security and compliance auditing.
+   * **Log Archive Account**: Stores centralized CloudTrail and Config logs.
+   * **Management Account**: The root account of the organization.
+3. **Service Control Policies (SCPs)** – via **guardrails**.
+4. **AWS Config Rules** – to detect violations.
+5. **CloudTrail** – for logging all events.
+6. **AWS SSO (IAM Identity Center)** – for federated identity management.
+
+---
+
+## 🔐 Types of Guardrails
+
+| **Type**                            | **Purpose**                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| **Preventive**                      | Uses **SCPs** to restrict actions (e.g., deny public S3 buckets).         |
+| **Detective**                       | Uses **AWS Config** to detect compliance violations (e.g., MFA disabled). |
+| **Mandatory**                       | Cannot be turned off, enforces global security practices.                 |
+| **Strongly Recommended / Elective** | Can be enabled/disabled per OU as needed.                                 |
+
+---
+
+## ⚙️ Example Use Case
+
+> Your organization has finance, dev, and analytics teams. Each gets its own AWS account under a dedicated **OU**. You use **Control Tower** to:
+
+* Provision accounts with **Account Factory**
+* Enforce policies (e.g., no open security groups)
+* Collect all logs in one centralized **Log Archive** account
+* Detect misconfigurations using **Config rules**
+* Use IAM Identity Center for access control
+
+---
+
+## 🚀 Benefits of AWS Control Tower
+
+✅ **Accelerates setup** of secure multi-account AWS environments
+✅ **Reduces manual work** with automation
+✅ **Improves visibility** and governance
+✅ **Supports scaling** with OUs and Account Factory
+✅ **Built-in compliance** with AWS best practices
+
+---
+
+## ⚠️ Limitations / Considerations
+
+* Designed for **new account structures**; retrofitting an existing environment may need migration.
+* Customization is **limited** compared to hand-rolled Landing Zones.
+* Guardrail scope is defined by AWS; custom Config rules need to be added separately.
+---
+Yes, **AWS Control Tower can help you enforce rules to allow or deny internet access** at the **account or organizational unit (OU)** level — but it does **not directly configure networking** like VPCs or security groups. Instead, it uses **guardrails** (a combination of **Service Control Policies (SCPs)** and **AWS Config rules**) to enforce governance.
+
+---
+
+### ✅ Options to Control Internet Access with AWS Control Tower
+
+#### 1. **Prevent Internet Access via Guardrails (SCP-based)**
+
+You can **prevent public access to AWS resources** using **preventive guardrails** (SCPs). For example:
+
+| **Guardrail Name**                                 | **Type**   | **Effect**                                                    |
+| -------------------------------------------------- | ---------- | ------------------------------------------------------------- |
+| Disallow internet access to S3 buckets             | Preventive | Blocks actions that would make S3 buckets publicly accessible |
+| Disallow creation of internet gateways             | Preventive | Blocks creation of VPC Internet Gateways                      |
+| Disallow public IP for EC2                         | Preventive | Prevents EC2 instances from being launched with public IPs    |
+| Disallow modifying Route Tables to allow 0.0.0.0/0 | Preventive | Restricts VPC-level egress to the internet                    |
+
+These are **enabled at the OU level** through the Control Tower dashboard.
+
+---
+
+#### 2. **Detect Internet Exposure via AWS Config Rules**
+
+For example:
+
+* **Detect whether S3 buckets are public**
+* **Detect whether EC2 instances have public IP addresses**
+* **Detect overly permissive security group rules (e.g., 0.0.0.0/0)**
+
+These **detective guardrails** won't block actions, but will notify you of violations.
+
+---
+
+### 🧩 Combine with Network Design
+
+To **fully enforce internet access control**, you usually combine **Control Tower guardrails** with:
+
+| Layer                   | Role                                             |
+| ----------------------- | ------------------------------------------------ |
+| **VPC Design**          | Use private subnets, no NAT or Internet Gateways |
+| **Route Tables**        | Remove/default routes to `0.0.0.0/0`             |
+| **Security Groups**     | Block egress to the internet                     |
+| **IAM Policies / SCPs** | Prevent creating/modifying IGWs, public IPs      |
+
+---
+
+### ✅ Example Use Case
+
+> You want all accounts in a **"SensitiveData" OU** to have **no internet access**:
+
+* Apply SCP to deny `ec2:CreateInternetGateway`, `ec2:AssociateAddress`, and `ec2:CreateRoute` for `0.0.0.0/0`.
+* Detect public IPs and open security groups via AWS Config rules.
+* Design VPCs in those accounts with no IGW or NAT.
+
+---
 # 💾 Simple Storage Service S3
 
 ## S3 Security
@@ -1360,30 +1501,49 @@ Keys never leave KMS - Provides FIPS 140-2 (L2)**
     - You are not restricted to use the KMS Key provided på AWS. You can use your own customer-managed KMS key.
         - You can control permissions and rotation
     - **Role separation!** S3 admin with full access can’t see the unencrypted version of objects - need access to the KMS key
-        
-        ![Untitled](img/Untitled%2015.png)
-                
-        ---
-        | Method     | Key Management | Encryption Processing | Extras                |
-        |------------|----------------|------------------------|------------------------|
-        | Client-Side | You            | You                    |                        |
-        | SSE-C       | You            | S3                     |                        |
-        | SSE-S3      | S3             | S3                     |                        |
-        | SSE-KMS     | S3 & KMS       | S3                     | Rotation Control, Role Separation |
-        ---
-        ![Untitled](img/Untitled%2016.png)
-        
-        ### Bucket Default Encryption
-        
-        - PUT operation when uploading
-        - header
-            - x-amz-server-side-encryption : “AES256” eller “aws:kms”
-                - How you specify to use S3 encryption
-                - AES-256: SSE-S3
-                - aws:kms : SSE-KMS
-        - Can set a default for a bucket when you don’t specify this header
-        - Can also restrict what encryption is possible on a bucket
 
+---
+| **SSE Type** | **Description**                                                       | **Key Management**          | **Client Responsibility**       | **Region Consideration**                                         | **Use Cases**                                          |
+| ------------ | --------------------------------------------------------------------- | --------------------------- | ------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------ |
+| **SSE-S3**   | Encrypts data using **AWS-managed S3 keys** automatically.            | AWS manages keys            | None                            | Available in **all regions**                                     | Basic encryption without key management                |
+| **SSE-KMS**  | Uses **AWS Key Management Service (KMS)** with customer-managed keys. | AWS KMS (you manage CMK)    | Specify CMK, manage permissions | Key must exist in **same region** as the resource                | Compliance, audit logging, fine-grained access control |
+| **SSE-C**    | Uses **customer-provided keys** on each request.                      | Customer supplies & manages | Provide key in every request    | Not available in all regions, varies by **S3 regional endpoint** | Temporary or client-specific encryption needs          |
+
+---        
+![Untitled](img/Untitled%2015.png)
+
+                
+---
+| Method     | Key Management | Encryption Processing | Extras                |
+|------------|----------------|------------------------|------------------------|
+| Client-Side | You            | You                    |                        |
+| SSE-C       | You            | S3                     |                        |
+| SSE-S3      | S3             | S3                     |                        |
+| SSE-KMS     | S3 & KMS       | S3                     | Rotation Control, Role Separation |
+---
+![Untitled](img/Untitled%2016.png)
+
+### Bucket Default Encryption
+
+- PUT operation when uploading
+- header
+    - x-amz-server-side-encryption : “AES256” eller “aws:kms”
+        - How you specify to use S3 encryption
+        - AES-256: SSE-S3
+        - aws:kms : SSE-KMS
+- Can set a default for a bucket when you don’t specify this header
+- Can also restrict what encryption is possible on a bucket
+---
+
+| Service         | Encryption at Rest                     | Encryption in Transit | KMS Support |
+| --------------- | -------------------------------------- | --------------------- | ----------- |
+| S3              | SSE-S3, SSE-KMS, SSE-C                 | HTTPS (TLS)           | ✅           |
+| RDS             | Transparent Data Encryption (TDE), KMS | SSL/TLS               | ✅           |
+| EBS             | KMS-based encryption                   | -                     | ✅           |
+| DynamoDB        | KMS-based encryption                   | HTTPS (TLS)           | ✅           |
+| Lambda          | Encrypted environment variables        | -                     | ✅           |
+| Secrets Manager | Encrypted with KMS                     | HTTPS (TLS)           | ✅           |
+---
 ## S3 Object Storage Classes
 
 ### S3 Standard
@@ -1547,9 +1707,30 @@ SQL-Like statement*
 - Replication
 - **Use EventBridge as default!**
     - Newer and adds support for more services and events
-
+---
 ![Untitled](img/Untitled%2030.png)
+---
+| **Event Name**                             | **Description**                                |
+| ------------------------------------------ | ---------------------------------------------- |
+| `s3:ObjectCreated:*`                       | Any object creation event                      |
+| `s3:ObjectCreated:Put`                     | Object uploaded using `PUT`                    |
+| `s3:ObjectCreated:Post`                    | Object uploaded using HTML POST                |
+| `s3:ObjectCreated:Copy`                    | Object created by copying another object       |
+| `s3:ObjectCreated:CompleteMultipartUpload` | Object created via multipart upload completion |
+| `s3:ObjectRemoved:*`                       | Any object deletion                            |
+| `s3:ObjectRemoved:Delete`                  | Object deleted using `DELETE`                  |
+| `s3:ObjectRemoved:DeleteMarkerCreated`     | Versioned delete marker created                |
+| `s3:ReducedRedundancyLostObject`           | Object lost (infrequent case, RRS only)        |
+---
+## S3 Event Notification -> Destination
+| **Destination**        | **Purpose**                                         |
+| ---------------------- | --------------------------------------------------- |
+| **AWS Lambda**         | Trigger serverless code to process the event        |
+| **Amazon SNS Topic**   | Publish the event to subscribers                    |
+| **Amazon SQS Queue**   | Queue the event for processing by consumers         |
+| **Amazon EventBridge** | (New) Route S3 events to rules and targets natively |
 
+---
 ## S3 Access Logs
 
 > *Provides detailed records for the requests that are made to a bucket*
@@ -3955,6 +4136,65 @@ In case of failure of the primary DB, the CNAME points to the standby DB
 > *Snapshots can be restored .. but create a new RDS instance*
 > 
 
+---
+You're absolutely right, and here's a more detailed breakdown regarding **OS-level access in Amazon RDS**, especially for **Oracle**:
+
+---
+
+## 🔐 **Access to the Underlying Operating System in Amazon RDS**
+
+### ✅ **Amazon RDS Custom for Oracle**
+
+* **Allows OS-level access.**
+* Designed for **highly customized workloads** that require:
+
+  * Custom Oracle patches
+  * Advanced database configurations
+  * Access to the **DB host** for scripts, monitoring agents, or debugging
+* You get **SSH access** to the underlying EC2 instance running the RDS instance.
+* Root-level control is granted, but you’re responsible for maintaining:
+
+  * OS updates
+  * Oracle patches
+  * Instance stability and support boundaries
+
+#### Use Case:
+
+If your workload needs custom initialization scripts, third-party agents, or Oracle features not supported in standard RDS, **RDS Custom** is the right choice.
+
+---
+
+### ❌ **Standard Amazon RDS for Oracle (Managed)**
+
+* **Does NOT allow OS-level access.**
+* It is a **fully managed service**, and Amazon:
+
+  * Handles OS patching
+  * Prevents you from accessing or modifying the host OS
+  * Restricts you to database-level access only (via SQL clients or APIs)
+* Ideal for use cases where stability, simplicity, and managed infrastructure are more important than custom control.
+
+---
+
+## 🔍 Quick Comparison
+
+| Feature                        | RDS for Oracle (Standard) | RDS Custom for Oracle       |
+| ------------------------------ | ------------------------- | --------------------------- |
+| OS-level access (SSH)          | ❌ No                      | ✅ Yes                       |
+| Custom Oracle patches          | ❌ No                      | ✅ Yes                       |
+| Fully managed by AWS           | ✅ Yes                     | ❌ You manage OS & DB        |
+| High customization             | ❌ Limited                 | ✅ Full control              |
+| Automation (backups, failover) | ✅ Built-in                | ✅ Optional, but needs setup |
+
+---
+
+## ⚠️ Important Notes
+
+* **RDS Custom** requires additional IAM roles and a dedicated VPC setup with proper network configuration.
+* You take on **more operational burden** with RDS Custom: AWS only supports the infrastructure, not issues caused by your customizations.
+* **Billing** is different — RDS Custom instances are based on EC2 + EBS costs plus RDS overhead.
+
+---
 ### RTO vs RPO
 
 **RTO: Recovery Time Objective**
@@ -4822,7 +5062,15 @@ Equally distribute load to instances across AZs
 ### ASG - Step Scaling
 
 ![Untitled](img/Untitled%20116.png)
+---
+| Type                  | Description                                                                     | Use Case                                               |
+| --------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **Target Tracking**   | Automatically adjusts capacity to maintain a target metric (e.g., 50% CPU).     | Easiest and most commonly used.                        |
+| **Step Scaling**      | Responds to changes with step adjustments (e.g., add 2 instances if CPU > 80%). | More control over scale-in/scale-out behavior.         |
+| **Simple Scaling**    | Triggers a fixed number of instance changes based on alarms.                    | Basic scenarios; now largely replaced by step scaling. |
+| **Scheduled Scaling** | Scales based on time, regardless of load.                                       | Anticipate traffic (e.g., scale up at 9 AM).           |
 
+---
 ## ASG Lifecycle Hooks
 
 > Lifecycle hooks enable you to perform custom actions by *pausing* instances as an Auto Scaling group launches or terminates them. When an instance is paused, it remains in a wait state either until you complete the lifecycle action using the **complete-lifecycle-action** command or the `CompleteLifecycleAction` operation, or until the timeout period ends (one hour by default).
@@ -6201,6 +6449,93 @@ It automates much of the effort involved in:
 
 ---
 
+## AWS Glue Bookmarks
+In AWS Glue, **bookmarks** refer to a feature that helps **track processing state** so that your ETL (Extract, Transform, Load) jobs **only process new or changed data** since the last successful run. This is especially useful for incremental data processing.
+
+---
+
+### 🔖 **What Are Bookmarks in AWS Glue?**
+
+Glue bookmarks are metadata stored by Glue to remember the **last read position** in a source dataset. They allow ETL jobs to avoid reprocessing old data and instead pick up where they left off.
+
+---
+
+### 📌 **Key Concepts**
+
+| Concept                    | Description                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Job Bookmark**           | Tracks the state information such as file name, timestamp, and other partition details from the source. |
+| **Bookmark-enabled job**   | A job that has bookmarks enabled and uses them to process data incrementally.                           |
+| **State**                  | Glue stores this in an internal **Data Catalog table** or S3, depending on the configuration.           |
+| **Source types supported** | S3, JDBC (e.g., RDS), and others that support incremental reading.                                      |
+
+---
+
+### ⚙️ **How to Enable Job Bookmarks**
+
+In the AWS Console or using Glue APIs:
+
+* **Console**:
+
+  * While creating or editing a Glue job, under **Job Details**, find the **Job bookmark** option.
+  * Set it to: `Enable`.
+
+* **AWS CLI/SDK**:
+  Use the `--job-bookmark-option` parameter:
+
+  ```bash
+  aws glue create-job \
+    --name my-etl-job \
+    --command '{"Name": "glueetl", ...}' \
+    --job-bookmark-option "job-bookmark-enable"
+  ```
+
+---
+
+### 📂 **How It Works (Example)**
+
+**Scenario**: You have a Glue job that reads JSON files from an S3 bucket every day.
+
+1. On the **first run**, it processes all available files.
+2. AWS Glue stores metadata (e.g., S3 file names processed).
+3. On **subsequent runs**, it reads only new files that weren’t previously processed.
+
+This is particularly effective in **partitioned datasets**, where Glue tracks the latest partition processed.
+
+---
+
+### 🧪 **Controlling Bookmark Behavior**
+
+| Setting                | Description                                                                |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `job-bookmark-enable`  | Enables bookmarks.                                                         |
+| `job-bookmark-disable` | Disables bookmarks (processes all data every time).                        |
+| `job-bookmark-pause`   | Temporarily disables bookmarks without deleting state.                     |
+| `job-bookmark-reset`   | Resets the bookmark state completely (can be done via the console or CLI). |
+
+---
+
+### 🛠️ **Resetting Bookmarks**
+
+To reset bookmarks (e.g., for reprocessing everything):
+
+* In the AWS Console, go to your job > **Action** > **Reset job bookmark**.
+* Using CLI:
+
+  ```bash
+  aws glue reset-job-bookmark --job-name my-etl-job
+  ```
+
+---
+
+### 🧠 **Best Practices**
+
+* Use bookmarks for **incremental loads**, especially for large datasets.
+* Combine bookmarks with **partitioning** for maximum efficiency.
+* Make sure your source (like S3 or RDS) supports incremental identification (e.g., timestamp columns or unique IDs).
+
+---
+
 ## 🚀 Common Use Cases
 
 | Use Case                              | How Glue Helps                                      |
@@ -6825,7 +7160,59 @@ aws ec2 create-vpc-endpoint \
 ### Architecture
 
 ![Untitled](img/Untitled%20167.png)
+---
+## 🔒 **AWS PrivateLink vs VPC Endpoints**
 
+| Feature                | **AWS PrivateLink**                                                        | **VPC Endpoints (Gateway & Interface)**                                       |
+| ---------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Purpose**            | Access AWS and third-party services **privately** via ENI                  | Connect to AWS services within your VPC privately                             |
+| **Types**              | Uses **Interface Endpoints**                                               | Two types: **Interface** and **Gateway** Endpoints                            |
+| **Network Type**       | Private IPs via **Elastic Network Interfaces (ENIs)**                      | Gateway: Route table-based; Interface: ENI-based                              |
+| **Traffic Visibility** | Remains **within AWS network**, no public IPs                              | Same — traffic never traverses the public internet                            |
+| **Common Use Cases**   | - SaaS over PrivateLink<br>- Accessing services in another VPC/VPC Lattice | - Access S3 or DynamoDB (Gateway)<br>- Access EC2, SNS, SQS, etc. (Interface) |
+| **Supported Services** | - AWS services<br>- Third-party services<br>- Your own services (via NLB)  | - Gateway: Only **S3** and **DynamoDB**<br>- Interface: Many AWS services     |
+| **Pricing**            | Billed for **data processed** and ENI usage                                | Interface: Charged like PrivateLink<br>Gateway: **Free**                      |
+| **Cross-VPC Support**  | ✅ Yes (can span VPCs & accounts via PrivateLink)                           | ❌ Only within the VPC (unless shared using RAM or Transit Gateway)            |
+| **Setup Complexity**   | Medium – needs service/endpoint setup, VPC peering optional                | Simple – attach to VPC and use with routing or DNS                            |
+| **Security Benefits**  | - Avoids public internet<br>- IAM policies per endpoint                    | Same — plus VPC security group & route table control                          |
+
+---
+
+## 🛠️ **Types of VPC Endpoints**
+
+| **Endpoint Type** | **Used For**                   | **Mechanism**              |
+| ----------------- | ------------------------------ | -------------------------- |
+| **Gateway**       | S3, DynamoDB                   | Route table entry          |
+| **Interface**     | Most AWS services, PrivateLink | ENI in subnet + private IP |
+
+---
+
+## 🧭 **When to Use What**
+
+* ✅ **Use AWS PrivateLink** when:
+
+  * You want to expose your own services privately to other VPCs/accounts
+  * You’re consuming SaaS applications privately via AWS Marketplace
+  * You need cross-VPC service access without VPC peering
+
+* ✅ **Use VPC Gateway Endpoints** when:
+
+  * You access S3/DynamoDB from private subnets
+  * You want a **free**, simple, and secure connection
+
+* ✅ **Use Interface Endpoints (VPC)** when:
+
+  * You want to access AWS services like SQS, SNS, Secrets Manager, etc.
+  * You want more granular **IAM access policies** and **VPC security groups**
+---
+### AWS PrivateLink
+
+- Provides private connectivity between VPCs and services across accounts or VPCs without exposing traffic to the public internet.
+
+- Allows connection only to the specific service (not the entire VPC), satisfying the **"restricted to target service"** requirement.
+
+- Traffic stays within the AWS network.
+---
 ## VPC Peering
 
 > *VPC peering is a software define and logical networking connection between two VPC's*
@@ -7271,13 +7658,15 @@ aws ec2 create-vpc-endpoint \
 - Not economical for **multi-site** (unless huge) or sub **10PB** ❗
 - LITERALLY A TRUCK
 ---
-| Feature     | Snowball      | Snowball Edge           | Snowmobile         |
-| ----------- | ------------- | ----------------------- | ------------------ |
-| Capacity    | \~80 TB       | Up to 210 TB            | Up to 100 PB       |
-| Compute     | ❌             | ✅ (EC2, Lambda)         | ❌                  |
-| Use Case    | Bulk transfer | Edge compute, migration | Data center move   |
-| Form Factor | Device        | Device with compute     | Shipping container |
-| Delivery    | Courier       | Courier                 | Semi-truck         |
+
+| Feature     | Snowcone                           | Snowball      | Snowball Edge           | Snowmobile         |
+| ----------- | ---------------------------------- | ------------- | ----------------------- | ------------------ |
+| Capacity    | 8 TB usable                        | \~80 TB       | Up to 210 TB            | Up to 100 PB       |
+| Compute     | ✅ (EC2, Lambda)                    | ❌             | ✅ (EC2, Lambda)         | ❌                  |
+| Use Case    | Edge compute, small-scale transfer | Bulk transfer | Edge compute, migration | Data center move   |
+| Form Factor | Rugged device                      | Device        | Device with compute     | Shipping container |
+| Delivery    | Courier                            | Courier       | Courier                 | Semi-truck         |
+
 
 ---
 ## AWS Directory Service
@@ -8608,7 +8997,9 @@ Amazon DynamoDB is a fully managed, serverless NoSQL database service provided b
 
 ![Untitled](img/Untitled%20244.png)
 
-
+---
+![alt text](Img/RedShift.png)
+---
 
 # 🤖Machine Learning📘
 
