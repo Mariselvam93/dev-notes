@@ -1379,7 +1379,7 @@ Versioning lets you store multiple versions of objects within a bucket. Operatio
 - 10 000 max parts, 5MB → 5GB ❗
 - Parts can fail, and be restarted
 - Transfer rate = speed of all parts
-
+---
 ### S3 Accelerated Transfer (Off)
 
 - Uses the network of edge locations
@@ -1388,7 +1388,125 @@ Versioning lets you store multiple versions of objects within a bucket. Operatio
 - Transfers data via the AWS network - more efficient than public internet
 - Lower, consistent latency
 - The worse the initial connection, the bigger the gain of uses accelerated transfer
+---
+### 🚀 Amazon S3 Transfer Acceleration
 
+**Amazon S3 Transfer Acceleration (S3TA)** enables **faster uploads and downloads** of files to and from Amazon S3 **over long distances** using **Amazon CloudFront’s globally distributed edge locations**.
+
+---
+
+## 🧠 How It Works
+
+When S3TA is enabled on a bucket:
+
+* Uploads and downloads are routed through **CloudFront edge locations**.
+* Edge locations **accelerate data transfer** using optimized network paths to the S3 bucket's AWS Region.
+* Ideal for users who are **geographically distant** from the target S3 bucket's region.
+
+---
+
+## 🏗️ Architecture Overview
+
+```
+Client (e.g., Europe) 
+     ↓
+CloudFront Edge Location (e.g., Frankfurt)
+     ↓
+Optimized AWS Backbone Network
+     ↓
+S3 Bucket (e.g., us-east-1)
+```
+
+---
+
+## ✅ Key Benefits
+
+| **Benefit**                   | **Details**                                              |
+| ----------------------------- | -------------------------------------------------------- |
+| **Faster Uploads/Downloads**  | Reduces latency using CloudFront edge network.           |
+| **No Infrastructure Changes** | Works with existing S3 PUT/GET operations via a new URL. |
+| **Secure and Reliable**       | Uses HTTPS and the AWS backbone network.                 |
+| **Globally Distributed**      | Uses more than 200 CloudFront edge locations worldwide.  |
+
+---
+
+## 🧪 Performance
+
+* **Best suited for:**
+
+  * Large objects (e.g., videos, backups)
+  * Remote users (e.g., Asia → us-east-1)
+* **Less effective if:**
+
+  * Users are close to the bucket's region.
+  * The internet connection is the bottleneck.
+
+You can run an [**S3TA Speed Comparison Tool**](https://s3-accelerate-speedtest.s3-accelerate.amazonaws.com/en/accelerate-speed-comparsion.html) to evaluate speed improvements.
+
+---
+
+## 🛠️ How to Enable It
+
+1. Go to **S3 Console**
+2. Choose a **bucket**
+3. Navigate to **Properties > Transfer Acceleration**
+4. Click **Enable**
+
+You can also use:
+
+```bash
+aws s3api put-bucket-accelerate-configuration \
+  --bucket your-bucket-name \
+  --accelerate-configuration Status=Enabled
+```
+
+---
+
+## 🌐 Accessing Accelerated Endpoints
+
+Once enabled, the new accelerated endpoint is:
+
+```
+https://<bucket-name>.s3-accelerate.amazonaws.com
+```
+
+Instead of:
+
+```
+https://<bucket-name>.s3.amazonaws.com
+```
+
+---
+
+## 💰 Pricing
+
+| **Item**                  | **Cost Impact**                            |
+| ------------------------- | ------------------------------------------ |
+| **Standard S3 requests**  | Normal pricing                             |
+| **Accelerated transfers** | Additional fee per GB transferred via S3TA |
+
+Refer to [AWS S3 Pricing](https://aws.amazon.com/s3/pricing/) for up-to-date costs.
+
+---
+
+## 🔒 Security and IAM
+
+* All IAM permissions and bucket policies apply normally.
+* HTTPS encryption is enforced.
+* Works with **VPC endpoints**, IAM, and **bucket policies** just like normal S3 requests.
+
+---
+
+## 🔄 Use Cases
+
+| **Use Case**                               | **Why Use S3TA**                                   |
+| ------------------------------------------ | -------------------------------------------------- |
+| Uploading large files from remote offices  | Faster, more reliable uploads                      |
+| Global applications with central S3 bucket | Optimize performance for users in other continents |
+| Mobile or IoT devices in distant regions   | Faster uploads to AWS                              |
+| High-volume media uploads                  | Reduce delays in ingest pipelines                  |
+
+---
 ## Key Management Service (KMS)
 
 > **Regional & Public Service
@@ -4492,8 +4610,53 @@ Writes to replica after primary write is complete. ***Can*** be accessed for rea
 - Changes are committed to the other replica in addition to storage
 
 ![Untitled](img/Untitled%20101.png)
+---
+
+## RDS Proxy with Aurora DB
+
+### ✅ **Why RDS Proxy applies to Aurora**
+
+**Amazon Aurora** is a **managed database service under the Amazon RDS umbrella**. Even though it's optimized and built differently than standard RDS engines, **Aurora is still integrated into the RDS ecosystem**, including:
+
+* **RDS Console**
+* **RDS Features** like **RDS Proxy**, **automatic backups**, **Multi-AZ**, etc.
 
 ---
+
+### 🔧 What is **RDS Proxy**?
+
+> **RDS Proxy** is a **fully managed database proxy** for RDS databases, including:
+
+* **RDS MySQL**
+* **RDS PostgreSQL**
+* **Aurora MySQL**
+* **Aurora PostgreSQL**
+
+It helps **manage and pool connections**, which is especially important for **serverless architectures** like AWS Lambda that can create **bursts of connections**.
+
+---
+
+### 💡 So in short:
+
+* **Aurora PostgreSQL is compatible with RDS Proxy**
+* You can create an **RDS Proxy endpoint** for your Aurora DB cluster
+* **Update the Lambda function to connect via that proxy**, reducing connection overhead
+
+---
+
+### ✅ AWS Documentation Confirms:
+
+> "Amazon RDS Proxy **supports** Amazon RDS for MySQL and PostgreSQL, and **Amazon Aurora with MySQL or PostgreSQL compatibility**."
+> → [Source: AWS RDS Proxy documentation](https://docs.aws.amazon.com/rds/proxy/)
+
+---
+
+### ✅ Summary:
+
+Even though your database is **Aurora**, using **RDS Proxy** is completely valid — and in fact, **recommended** — to improve scalability and connection management with Lambda.
+---
+---
+## RDS
 Amazon RDS (Relational Database Service) and Amazon Aurora are both managed database services provided by AWS, but they have important differences in terms of performance, scalability, cost, and architecture. Here's a breakdown of the **key differences**:
 
 ---
@@ -5380,8 +5543,15 @@ While Lambda itself is a single service, it can be **invoked in different ways**
 
 ![Untitled](img/Untitled%20133.png)
 ---
-**Amazon EventBridge** is a **serverless event bus service** that helps you build **event-driven applications** by connecting your applications with data from your own services, AWS services, or SaaS applications — **without writing custom polling or glue code**.
+---
+| **Feature**        | **Can it Stop/Start RDS?** | **How?**                                 |
+| ------------------ | -------------------------- | ---------------------------------------- |
+| **EventBridge**    | ✅ Yes                      | Triggers Lambda, SSM, or Step Functions  |
+| **Lambda**         | ✅ Yes                      | Use `boto3` or `AWS SDK` to call RDS API |
+| **SSM Automation** | ✅ Yes                      | Use AWS-provided automation runbooks     |
 
+---
+**Amazon EventBridge** is a **serverless event bus service** that helps you build **event-driven applications** by connecting your applications with data from your own services, AWS services, or SaaS applications — **without writing custom polling or glue code**.
 ---
 
 ## 🚦 **Key Concepts**
@@ -5475,7 +5645,150 @@ While Lambda itself is a single service, it can be **invoked in different ways**
 ```
 
 ---
+Here is a comprehensive list of **EventBridge use cases**, organized by category. EventBridge is designed to **decouple applications** using events, and supports **event-driven architectures** across AWS services, SaaS platforms, and custom applications.
 
+---
+
+## ✅ **Core Use Cases of Amazon EventBridge**
+
+### 1. **Scheduled Events (Cron/Rate-based Triggers)**
+
+* Start/stop EC2, RDS, Redshift, or SageMaker instances on schedule
+* Trigger daily reports or ETL jobs
+* Archive data to Glacier at regular intervals
+* Perform nightly backups or snapshots
+* Auto-scale infrastructure based on time of day
+
+---
+
+### 2. **Automated Remediation**
+
+* Detect misconfigurations (via AWS Config or CloudTrail) and:
+
+  * Remove public access from S3 buckets
+  * Revert unauthorized IAM changes
+  * Terminate non-compliant EC2 instances
+
+---
+
+### 3. **Real-Time Data Processing**
+
+* Trigger AWS Lambda to process:
+
+  * New S3 uploads
+  * Kinesis Data Stream records
+  * New items in DynamoDB Streams
+* Fan-out events to multiple targets (e.g., Lambda + SNS + Step Functions)
+
+---
+
+### 4. **Audit and Security Monitoring**
+
+* Monitor AWS CloudTrail events for:
+
+  * IAM policy changes
+  * Unauthorized API calls
+  * Root account usage
+* Trigger guardrail actions (e.g., SNS alerts, Lambda quarantining)
+
+---
+
+### 5. **Service Integration and Orchestration**
+
+* Trigger Step Functions workflows from events (e.g., order processing)
+* Automate ticket creation in ServiceNow or Jira when alarms fire
+* Chain events from multiple AWS services (e.g., CodePipeline → Lambda → ECS)
+
+---
+
+### 6. **Cross-Account and Cross-Region Event Routing**
+
+* Centralize monitoring/logging events from multiple AWS accounts
+* Send billing or budget threshold events to a central account
+* Forward GuardDuty findings across regions
+
+---
+
+### 7. **Third-Party SaaS Integrations (via Partner Event Bus)**
+
+EventBridge natively integrates with many SaaS apps:
+
+* Datadog, PagerDuty, Segment, Zendesk, Auth0, OneLogin, etc.
+* Use cases:
+
+  * Alerting, CRM updates, incident response, audit events
+
+---
+
+### 8. **Application Decoupling (Microservices Communication)**
+
+* Emit events from microservices instead of direct calls
+* Reduce tight coupling between services (publish-subscribe pattern)
+* Example: "OrderPlaced" → inventory service, notification service, billing service
+
+---
+
+### 9. **Machine Learning and Analytics Triggers**
+
+* Invoke SageMaker Pipelines when new data arrives
+* Trigger Athena queries or Glue jobs when raw data is uploaded
+* Automate feature store updates
+
+---
+
+### 10. **DevOps and Deployment Automation**
+
+* Trigger CodePipeline on push events from CodeCommit
+* Send CloudWatch alarm state changes to EventBridge
+* Auto-rollback deployments on certain patterns
+
+---
+
+### 11. **Custom Application Events**
+
+* Send events from your own apps via `PutEvents` API
+* Trigger workflows, emails, alerts, or downstream services
+* Example: custom audit logs, order lifecycle events, user signups
+
+---
+
+### 12. **Compliance & Cost Optimization**
+
+* Turn off unused instances at night
+* Alert when new expensive instance types are launched
+* Enforce tagging compliance by detecting untagged resources
+
+---
+
+## 🎯 Common Targets of EventBridge
+
+| **Target Type**                | **Use Case Examples**                                        |
+| ------------------------------ | ------------------------------------------------------------ |
+| **Lambda**                     | Run custom logic (e.g., stop RDS, send email, process event) |
+| **Step Functions**             | Orchestrate long-running workflows                           |
+| **SNS / SQS**                  | Queue events or fan out to multiple subscribers              |
+| **EC2 Run Command**            | Run shell scripts on instances                               |
+| **Systems Manager Automation** | Start/Stop EC2, RDS using SSM documents                      |
+| **SageMaker Pipelines**        | Trigger ML workflows on data arrival                         |
+| **CodePipeline**               | Start CI/CD deployments                                      |
+| **Kinesis Firehose**           | Stream events to S3, Redshift, or Splunk                     |
+| **CloudWatch Logs**            | Archive or monitor custom events                             |
+
+---
+
+## 📌 Summary Table
+
+| **Category**                     | **Example Use Case**                                   |
+| -------------------------------- | ------------------------------------------------------ |
+| **Automation**                   | Start/stop EC2, RDS, or SageMaker on schedule          |
+| **Security & Compliance**        | Detect public S3, IAM changes, root usage              |
+| **DevOps**                       | Auto-trigger pipelines, rollbacks, or notify failures  |
+| **Data Processing**              | Process new files, stream logs, trigger ETL jobs       |
+| **Monitoring & Alerting**        | Fan out alarms to multiple systems                     |
+| **Application Integration**      | Trigger microservices based on custom or system events |
+| **Third-Party SaaS Integration** | Alerting, incident management, CRM, etc.               |
+
+---
 ## Serverless Architecture
 
 > *The Serverless architecture is a evolution/combination of other popular architectures such as event-driven and microservices.*
@@ -6875,6 +7188,128 @@ Output to S3 / Redshift / Athena
 ### Private Distributions
 
 ![Untitled](img/Untitled%20160.png)
+---
+### 🔐 **Field-Level Encryption in Amazon CloudFront**
+
+**Field-Level Encryption (FLE)** in CloudFront allows you to **encrypt sensitive data** (like credit card numbers or PII) **at the field level** **before it reaches your backend** — ensuring that **only trusted components** can decrypt and access the data.
+
+---
+
+## 🧩 **Why Use Field-Level Encryption?**
+
+* To **encrypt specific fields** (not the entire payload) in HTTPS POST requests (usually from web forms).
+* Ensure **end-to-end protection** of sensitive data.
+* Helps in achieving **compliance (e.g., PCI DSS)** for frontend-to-backend secure transmission.
+
+---
+
+## 🔄 **How It Works**
+
+1. **Public Key + Field Configuration:**
+
+   * CloudFront uses your **public encryption key** to encrypt specific fields.
+   * The **private key** is only accessible by your **trusted backend system**.
+
+2. **Client → CloudFront** (HTTPS):
+
+   * The browser sends a form (e.g., credit card data).
+   * CloudFront encrypts only the configured fields.
+
+3. **CloudFront → Origin Server**:
+
+   * Forwards the request with encrypted fields.
+   * Your origin (API/EC2/Lambda) uses the **private key** to decrypt the fields.
+
+---
+
+## 🛠️ **Steps to Set It Up**
+
+### 1. **Create an RSA Key Pair**
+
+* Use OpenSSL or AWS Key Management System (KMS) to generate a **2048-bit RSA key pair**.
+
+### 2. **Upload the Public Key to CloudFront**
+
+```bash
+aws cloudfront create-public-key \
+  --public-key-config '{
+      "CallerReference": "your-ref",
+      "Name": "your-key-name",
+      "EncodedKey": "-----BEGIN PUBLIC KEY-----..."}'
+```
+
+### 3. **Create a Field-Level Encryption Profile**
+
+* Specify:
+
+  * **Fields to encrypt** (e.g., `creditCardNumber`, `ssn`)
+  * **Public Key ID**
+
+```bash
+aws cloudfront create-field-level-encryption-profile \
+  --field-level-encryption-profile-config file://profile.json
+```
+
+### 4. **Associate the Profile with a CloudFront Distribution**
+
+* Update the CloudFront distribution to include the **field-level encryption configuration**.
+
+---
+
+## 📦 **Supported Fields**
+
+Field-Level Encryption works with:
+
+* HTTPS **POST** requests (web forms)
+* **Form-encoded** data only (e.g., `application/x-www-form-urlencoded`)
+* Specific form fields like `email`, `creditCardNumber`, etc.
+
+---
+
+## 🔐 **Security Considerations**
+
+| Aspect              | Detail                                           |
+| ------------------- | ------------------------------------------------ |
+| **Key Size**        | Must be RSA with a minimum of 2048-bit           |
+| **Encryption Algo** | RSAES-OAEP with SHA-1 and MGF1 padding           |
+| **HTTPS Required**  | Client-to-CloudFront must use **HTTPS only**     |
+| **Key Rotation**    | Periodic rotation is supported                   |
+| **Compliance**      | Helps meet **PCI DSS** and **GDPR** requirements |
+
+---
+
+## 💡 **Use Cases**
+
+| Scenario                               | Why Field-Level Encryption Helps                       |
+| -------------------------------------- | ------------------------------------------------------ |
+| Payment forms (credit card info)       | Ensures only payment processor can see card number     |
+| Personally Identifiable Info (PII)     | Protect user names, emails, SSNs                       |
+| Health data (e.g., HIPAA)              | Encrypt specific patient data fields                   |
+| Multi-tenant apps with sensitive forms | Prevent leakage of user data via frontend interception |
+
+---
+
+## ⚠️ **Limitations**
+
+* Only supports **form POST data** (`application/x-www-form-urlencoded`).
+* Not supported with JSON or binary payloads.
+* Adds **latency** (encryption step at edge).
+* Must **manage private keys** securely on backend.
+
+---
+
+## 📌 Summary
+
+| **Feature**                   | **Supported?**                      |
+| ----------------------------- | ----------------------------------- |
+| Encrypt specific form fields  | ✅                                   |
+| JSON payload support          | ❌ (only form-urlencoded)            |
+| Automatic key rotation        | Manual setup via API or AWS Console |
+| Edge encryption at CloudFront | ✅                                   |
+| Works with GET requests       | ❌                                   |
+
+---
+
 
 ## ****Lambda@Edge****
 
@@ -7615,6 +8050,46 @@ aws ec2 create-vpc-endpoint \
 
 ---
 ![alt text](img/StorageGateway.png)
+---
+
+---
+
+### 🔑 **Key Differences Between AWS Storage Gateway and AWS Transfer Family**
+
+| Feature / Aspect         | **AWS Storage Gateway**                                   | **AWS Transfer Family**                                          |
+| ------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Purpose**              | Extend on-premises apps to AWS cloud storage              | Provide fully managed **file transfer service**                  |
+| **Use Case**             | Hybrid cloud storage (NFS/SMB/iSCSI) with local caching   | Migrate/transfer files to/from S3 using FTP/SFTP/FTPS            |
+| **Protocols Supported**  | NFS, SMB, iSCSI (via File, Volume, and Tape Gateway)      | SFTP, FTPS, FTP                                                  |
+| **Deployment**           | On-premises VM, Hyper-V, VMware, EC2                      | Fully managed AWS service                                        |
+| **Client Location**      | Primarily **on-prem** clients needing AWS-backed storage  | Primarily **remote users/systems** transferring files to/from S3 |
+| **Data Target**          | Amazon S3, Amazon EBS, Amazon Glacier (depending on type) | Amazon S3                                                        |
+| **Local Cache**          | Yes – improves latency and bandwidth efficiency           | No – acts as a direct gateway between user and S3                |
+| **Authentication**       | Active Directory (for SMB), IAM, Kerberos                 | IAM, Service-managed users, custom identity providers            |
+| **Access Pattern**       | Ongoing data access (read/write from local apps)          | Scheduled or user-initiated transfers (push/pull)                |
+| **Example Use Case**     | Backup file servers, archive data, hybrid workloads       | MFT (Managed File Transfer), partner file exchange               |
+| **Common Gateway Types** | File Gateway, Volume Gateway, Tape Gateway                | N/A – Single service for multiple transfer protocols             |
+| **Security**             | TLS in transit, SSE or KMS at rest                        | TLS, IP allow lists, SSH keys, IAM policies                      |
+| **Monitoring**           | CloudWatch, local metrics                                 | CloudWatch, audit logs (via CloudTrail)                          |
+
+---
+
+### 🧠 Quick Decision Guide
+
+| Scenario                                            | Best Option                               |
+| --------------------------------------------------- | ----------------------------------------- |
+| Hybrid on-prem + AWS file storage with local cache  | **Storage Gateway (File Gateway)**        |
+| Replacing on-prem tapes or disk backups             | **Storage Gateway (Tape/Volume Gateway)** |
+| Secure file upload/download using SFTP              | **AWS Transfer Family (SFTP)**            |
+| Partner-facing FTP interface to write files into S3 | **AWS Transfer Family**                   |
+
+---
+
+### ✅ Summary
+
+* Use **AWS Storage Gateway** when you need **on-premises systems to work seamlessly with AWS storage** (e.g., file share backed by S3).
+* Use **AWS Transfer Family** when you need to **expose S3 as an SFTP/FTP endpoint** for external users or partners.
+
 ---
 ## Snowball & Snowmobile
 
@@ -9414,3 +9889,87 @@ A data analytics company uses ENA-enabled EC2 instances to transfer petabytes of
 
 > *AWS Artifact provides on-demand downloads of AWS security and compliance documents, such as AWS ISO certifications, Payment Card Industry (PCI), and Service Organization Control (SOC) reports.*
 > 
+---
+**AWS Lake Formation** is a managed service that makes it easy to set up a **secure data lake** in days instead of weeks. It simplifies and automates the tasks involved in collecting, cataloging, cleaning, securing, and making data available for analytics.
+
+---
+
+## 🧭 What Is a Data Lake?
+
+A **data lake** is a centralized repository where you can store all your structured and unstructured data at any scale. Unlike a data warehouse, it allows you to store data in its raw format and apply schema on read.
+
+---
+
+## ✅ Key Features of AWS Lake Formation
+
+| **Feature**                          | **Description**                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------- |
+| **Centralized Data Catalog**         | Integrates with AWS Glue Data Catalog to organize and discover datasets.  |
+| **Fine-Grained Access Control**      | Manage granular access to databases, tables, columns, and rows.           |
+| **Data Lake Permissions**            | Use **Lake Formation permissions** (LF-Tags, column-level security, etc.) |
+| **Secure Data Sharing**              | Share datasets securely across AWS accounts without duplicating data.     |
+| **Blueprints & Workflows**           | Pre-built templates for ingesting data from databases and files.          |
+| **Data Encryption**                  | Encrypts data at rest using AWS KMS.                                      |
+| **Integration with Analytics Tools** | Supports Amazon Athena, Redshift Spectrum, EMR, and QuickSight.           |
+| **Transaction Support**              | Supports ACID transactions via Governed Tables for data consistency.      |
+| **Data Lake Audit Logging**          | Tracks access and usage via AWS CloudTrail and Amazon CloudWatch.         |
+
+---
+
+## 🏗️ Lake Formation Components
+
+| **Component**           | **Description**                                                            |
+| ----------------------- | -------------------------------------------------------------------------- |
+| **Data Catalog**        | Central repository of metadata (tables, databases) shared across services. |
+| **Permissions Model**   | Uses IAM and LF permissions for fine-grained access.                       |
+| **LF-Tags**             | Custom labels attached to data assets for tag-based access control.        |
+| **Blueprints**          | Automated workflows to ingest data from JDBC sources or S3.                |
+| **Governed Tables**     | ACID-compliant tables for data consistency and update support.             |
+| **Data Ingestion**      | Easily bring in data from RDS, DynamoDB, S3, and on-premise sources.       |
+| **Security & Auditing** | Integrated with AWS KMS, CloudTrail, and CloudWatch.                       |
+
+---
+
+## 🔐 Access Control in Lake Formation
+
+Lake Formation introduces a new model **beyond IAM**, allowing:
+
+* **Table-level access control**
+* **Column-level and row-level security**
+* **Tag-based policies** using **LF-Tags**
+* **Cross-account data sharing** with **Resource Links**
+
+---
+
+## 🔄 Data Flow Overview
+
+1. **Ingest data** into S3 (from sources like RDS, DynamoDB, logs, etc.)
+2. **Register** the S3 location with Lake Formation
+3. **Catalog** metadata using AWS Glue
+4. **Apply permissions** via Lake Formation
+5. **Query the data** using services like Athena, Redshift Spectrum, or EMR
+6. **Audit access** using CloudTrail and CloudWatch
+
+---
+
+## 🚀 Common Use Cases
+
+| **Use Case**                       | **How Lake Formation Helps**                                |
+| ---------------------------------- | ----------------------------------------------------------- |
+| **Centralized Data Governance**    | Set consistent access controls across AWS accounts          |
+| **Secure Data Lake for Analytics** | Manage secure access for Athena, EMR, and Redshift          |
+| **Multi-tenant Data Lake**         | Isolate data by project, department, or customer            |
+| **Data Sharing Across Teams**      | Share data cataloged securely across departments or regions |
+| **Compliance & Audit**             | Track who accessed what data and when                       |
+
+---
+
+## 🛠️ Tools That Integrate with Lake Formation
+
+* **Amazon Athena** – Serverless queries with Lake Formation permissions
+* **Amazon Redshift Spectrum** – Access external data with permission control
+* **Amazon EMR** – Spark/Hive with centralized metadata and access control
+* **AWS Glue ETL** – Supports Lake Formation fine-grained access
+* **Amazon QuickSight** – Visualize data with Lake Formation access rules
+
+---
