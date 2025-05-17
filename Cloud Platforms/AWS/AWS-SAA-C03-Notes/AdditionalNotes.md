@@ -282,3 +282,13 @@ aws ec2 authorize-security-group-ingress \
   * Systems Manager → **Compliance → Patch compliance**
 
 ---
+## Read Replica and Multi-AZ
+---
+| Feature       | Read Replica           | Multi-AZ          |
+| ------------- | ---------------------- | ----------------- |
+| **Purpose**   | Read scalability       | High availability |
+| **Sync Type** | Asynchronous           | Synchronous       |
+| **Failover**  | Manual (unless Aurora) | Automatic         |
+| **Readable**  | ✅ Yes                  | ❌ No              |
+| **Cost**      | Additional cost        | Higher base cost  |
+---

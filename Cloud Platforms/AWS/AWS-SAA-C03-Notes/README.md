@@ -1586,6 +1586,14 @@ Keys never leave KMS - Provides FIPS 140-2 (L2)**
 
 ## S3 Encryption
 
+---
+| Task                     | Action                                                          |
+| ------------------------ | --------------------------------------------------------------- |
+| Encrypt existing objects | Use S3 Batch Operations with PUT copy and encryption            |
+| Encrypt future uploads   | Set default encryption on the bucket                            |
+| Encryption method        | SSE-S3 (simple, no cost) or SSE-KMS (secure, costs per request) |
+| CloudFront support       | Both SSE-S3 and SSE-KMS supported (with correct permissions)    |
+---
 > Buckets aren’t encrypted. **Objects are!**
 > 
 - **Client**-Side Encryption
@@ -2187,8 +2195,17 @@ Reduce admin overhead*
 ### Nat Instance vs NAT Gateway
 
 ![Untitled](img/Untitled%2047.png)
+---
+## Know where to use ephemeral ports
 
-### What about IPv6?
+| Feature                        | Security Group | NACL  |
+| ------------------------------ | -------------- | ----- |
+| Need to allow ephemeral ports? | ❌ No           | ✅ Yes |
+| Stateful                       | ✅              | ❌     |
+| Easier to manage?              | ✅              | ❌     |
+---
+---
+## What about IPv6?
 
 - NAT isn’t required for IPv6
 - All IPv6 addresses in AWS are publicly routable
@@ -3858,7 +3875,7 @@ Route 53 offers several routing policies to control how DNS queries are answered
 * **Failover Routing**: Routes traffic to a backup resource in case the primary resource is unhealthy.
 * **Geolocation Routing**: Routes traffic based on the geographic location of the requester.
 * **Geoproximity Routing**: Routes traffic to the closest resource, weighted by proximity.
-* **Multivalue Answer Routing**: Returns multiple records in response to a query, enabling clients to pick from multiple IP addresses.
+* **Multivalue Answer Routing**: Returns multiple records in response to a query, enabling clients to pick from multiple IP addresses.(**Random Routing**)
 
 ### 6. **Health Checks**
 
@@ -4575,7 +4592,27 @@ Writes to replica after primary write is complete. ***Can*** be accessed for rea
 > 
 > *Replication occurs at the storage layer and is generally ~1second between all AWS regions.*
 > 
+---
 
+### 🌐 What is Aurora Global Database?
+
+* A **multi-region**, **read-replica enabled** Aurora deployment.
+* Designed for **globally distributed**, **mission-critical** apps requiring:
+
+  * **Low-latency reads** from multiple AWS Regions.
+  * **Fast regional failover** for DR.
+
+---
+
+## Aurora Global Database - Disaster Recovery 
+| DR Strategy            | Description                                                       | Aurora Global DB Fit                                                    |
+| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Backup and Restore** | Periodic backups; restore when disaster happens. RTO/RPO is high. | ❌ Not Aurora Global DB's use case.                                      |
+| **Pilot Light**        | Minimal setup in secondary region. Scaled up when needed.         | ❌ Aurora Global DB maintains warm read-only cluster, not minimal infra. |
+| **Warm Standby**       | Fully configured but scaled-down copy running in another region.  | ✅ Aurora Global DB **is** a Warm Standby setup by design.               |
+| **Active/Passive**     | One active region, passive backup region ready to take over.      | ✅ Aurora Global DB fits well here; promotion is manual.                 |
+| **Active/Active**      | Fully active infrastructure in both regions.                      | ❌ Aurora Global DB allows only one **writable** primary region.         |
+---
 ### Aurora Global DB Architecture
 
 ![Untitled](img/Untitled%20100.png)
@@ -5757,6 +5794,79 @@ EventBridge natively integrates with many SaaS apps:
 * Turn off unused instances at night
 * Alert when new expensive instance types are launched
 * Enforce tagging compliance by detecting untagged resources
+
+---
+### 🧩 **Use Case**
+
+* A company wants to **monitor** and **alert** whenever the `CreateImage` API is called (used to create AMIs).
+* Objective: **Send real-time alerts** with **minimal operational overhead**.
+
+---
+
+### 🛠️ **Recommended Solution**
+
+Use **Amazon EventBridge** (formerly CloudWatch Events) to detect API calls from **AWS CloudTrail** and **trigger an alert** via **Amazon SNS**.
+
+---
+
+### ⚙️ **How It Works**
+
+1. **CloudTrail** records all API activity in the AWS account, including EC2 `CreateImage`.
+2. **EventBridge** consumes CloudTrail events in **real-time**.
+3. Create a **rule** in EventBridge to filter for the `CreateImage` event.
+4. Set **Amazon SNS** as the **target** of the rule to send email or SMS alerts.
+
+---
+
+### 🧾 **Sample EventBridge Rule Filter**
+
+```json
+{
+  "source": ["aws.ec2"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventName": ["CreateImage"]
+  }
+}
+```
+
+---
+
+### 📡 **Alerting via Amazon SNS**
+
+* Create an SNS topic (e.g., `CreateImageAlerts`).
+* Subscribe email addresses or other endpoints to the topic.
+* EventBridge sends the matched event as a notification to SNS.
+
+---
+
+### ✅ **Benefits**
+
+| Feature                    | Benefit                                           |
+| -------------------------- | ------------------------------------------------- |
+| **Real-time monitoring**   | Immediate alerts as events occur                  |
+| **No polling or querying** | No need for Athena, Lambda, or custom log parsers |
+| **Low cost & maintenance** | Serverless and fully managed                      |
+| **Simple integration**     | Direct EventBridge → SNS without custom logic     |
+
+---
+
+### 🧠 **Good to Know**
+
+* CloudTrail must be **enabled** to capture API events.
+* EventBridge automatically integrates with CloudTrail for supported AWS services.
+* You can **extend** this approach to other API calls (e.g., `TerminateInstances`, `CreateBucket`, etc.).
+
+---
+
+### 📌 **Use Case Summary**
+
+| Requirement                 | Solution                                     |
+| --------------------------- | -------------------------------------------- |
+| Monitor `CreateImage` calls | EventBridge Rule filtering CloudTrail events |
+| Alerting mechanism          | Amazon SNS topic with email subscribers      |
+| Operational overhead        | Very Low                                     |
+| Best for                    | Static monitoring of specific API activity   |
 
 ---
 
@@ -8205,7 +8315,7 @@ aws ec2 create-vpc-endpoint \
 ---
 ## AWS DataSync
 
-> *AWS DataSync is a product which can orchestrate the movement of large scale data (amounts or files) from on-premises NAS/SAN into AWS or vice-versa*
+> *AWS DataSync is a product which can orchestrate the movement of large scale data (amounts or files) from on-premises NAS(Network Attached Storage)/SAN into AWS or vice-versa*
 > 
 - Data Transfer service **TO/FROM** AWS
 - **Migrations, Data Processing Transfers, Archival/Cost Effective Storage or DR/BC**
@@ -8283,6 +8393,29 @@ Here's a table summarizing the key features and use cases for AWS DataSync:
 * **Shared File Storage for Windows Applications**: Provide shared file storage for applications running on Windows instances.
 * **Backup and Disaster Recovery**: Create backups of your file systems and use them for disaster recovery purposes.
 ---
+---
+## ✅ **Amazon FSx for Windows File Server & Active Directory Access Control**
+* **FSx for Windows File Server** supports:
+
+  * **SMB (Server Message Block) protocol** for file sharing.
+  * **NTFS file system permissions**.
+  * **Windows ACLs (Access Control Lists)**.
+* It can be **joined to an on-premises or AWS Managed Microsoft AD domain**, allowing:
+
+  * **User authentication** using AD credentials.
+  * **Authorization via existing AD groups** and **NTFS folder permissions**.
+* No need to re-create user/group structures or modify access models.
+
+---
+
+---
+| Feature              | Benefit                                                     |
+| -------------------- | ----------------------------------------------------------- |
+| FSx + AD Integration | Leverages existing AD group-based access control            |
+| NTFS Permissions     | Granular folder/file access control                         |
+| Minimal Changes      | Existing AD users continue to access shared data seamlessly |
+| No IAM Required      | Access is controlled by Windows/AD, not AWS IAM             |
+--
 Here's a comparison of **Amazon FSx for Windows File Server** (FSx) and **Amazon Elastic File System** (EFS) (**When to use FSx and when to use EFS**):
 ---
 
@@ -9971,5 +10104,491 @@ Lake Formation introduces a new model **beyond IAM**, allowing:
 * **Amazon EMR** – Spark/Hive with centralized metadata and access control
 * **AWS Glue ETL** – Supports Lake Formation fine-grained access
 * **Amazon QuickSight** – Visualize data with Lake Formation access rules
+
+---
+Here's a **well-formatted Markdown study note** for **Amazon Pinpoint**, tailored for the AWS Solutions Architect Associate (SAA-C03) exam, including key concepts, use cases, and important features:
+
+---
+
+# 📣 Amazon Pinpoint – AWS SAA-C03 Study Notes
+
+## 🔍 Overview
+
+Amazon Pinpoint is a **scalable, flexible, and cost-effective** AWS service that enables **user engagement** through **targeted push notifications, emails, SMS messages, and voice messages**.
+
+It is commonly used for **customer communication** and **marketing campaigns**, supporting analytics and segmentation.
+
+---
+
+## 🛠️ Key Features
+
+| Feature                     | Description                                                                     |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| **Multi-channel Messaging** | Supports **email**, **SMS**, **push notifications**, **in-app**, and **voice**. |
+| **Segmentation**            | Create dynamic segments based on user attributes and event activity.            |
+| **Campaigns**               | Run marketing campaigns targeting specific audiences with scheduling.           |
+| **Journeys**                | Create multi-step, personalized engagement flows.                               |
+| **Real-time Analytics**     | Track delivery, open, click-through, and opt-out rates.                         |
+| **Transactional Messages**  | Supports sending one-off messages like OTPs or confirmations.                   |
+
+---
+
+## 🎯 Use Cases
+
+* **User Onboarding**: Send a welcome email/SMS when a user signs up.
+* **Promotional Campaigns**: Send product offers based on user behavior or demographics.
+* **Transactional Messages**: Order confirmations, OTPs, password resets.
+* **Re-engagement**: Notify users who haven’t logged in for a while.
+* **Surveys & Feedback Requests**: Reach out to gather user feedback.
+
+---
+
+## 🔐 Security and Compliance
+
+* Supports **IAM policies** for controlling access.
+* Integration with **Amazon Cognito** for user identity.
+* Supports **AWS KMS** for encrypting data at rest.
+* **HIPAA-eligible** and can be used in **GDPR-compliant** architectures.
+
+---
+
+## 🔗 Integrations
+
+* **Amazon SNS** for mobile push notifications.
+* **Amazon SES** for email.
+* **AWS Lambda** for custom logic or dynamic message generation.
+* **Amazon Cognito** for user identity management.
+
+---
+
+## 💬 Message Types
+
+| Type                 | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| **Transactional**    | Sent in response to a user event (e.g., OTP, receipts).  |
+| **Promotional**      | Marketing content based on user preferences or behavior. |
+| **In-App Messaging** | Shown directly inside a mobile or web application.       |
+| **Voice Messages**   | Outbound calls with a pre-recorded message.              |
+
+---
+
+## 📊 Analytics
+
+* Pinpoint provides detailed analytics on:
+
+  * **Message delivery status**
+  * **Open and click-through rates**
+  * **User engagement metrics**
+  * **Campaign performance**
+
+You can export analytics to **Amazon S3**, integrate with **Amazon QuickSight**, or stream to **Amazon Kinesis** for real-time insights.
+
+---
+
+## 🧠 Exam Tips
+
+* Pinpoint is **used for user engagement**, **not infrastructure monitoring**.
+* Know the difference between **Pinpoint** and **Simple Notification Service (SNS)**:
+
+  * SNS is **event-driven and simple** (no segmentation or analytics).
+  * Pinpoint is **audience-based** with **deep analytics and multi-channel support**.
+* Used in **mobile backends** and **marketing solutions**.
+* Can trigger campaigns based on **Cognito events** or **user behavior logs**.
+
+---
+### 📘 **AWS Resource Groups Tag Editor — Study Notes**
+
+---
+
+### ✅ **What is AWS Resource Groups Tag Editor?**
+
+The **AWS Resource Groups Tag Editor** is a tool that helps you **manage tags** across multiple AWS resources from a **single location**. It simplifies the process of **finding**, **adding**, **modifying**, and **removing** tags on AWS resources across **regions and services**.
+
+---
+
+### 🧩 **Key Use Cases**
+
+* **Tag auditing**: View what resources are tagged and what tags they have.
+* **Bulk tagging**: Apply or update tags on many resources at once.
+* **Cost allocation**: Ensure resources are properly tagged for cost tracking.
+* **Access control**: Use tags with IAM policies for fine-grained access.
+* **Organizational management**: Group and organize AWS resources based on environment (e.g., `env=prod`, `team=devops`, etc.).
+
+---
+
+### 🔍 **How It Works**
+
+1. **Select Region(s)** and **resource types** you want to work with.
+2. **Search and filter** based on tag keys, values, or resource types.
+3. **Apply bulk actions**:
+
+   * Add new tags
+   * Modify existing tags
+   * Remove tags
+
+---
+
+### 🖥️ **Accessing Tag Editor**
+
+* Navigate in the AWS Console to:
+
+  ```
+  AWS Management Console → Resource Groups → Tag Editor
+  ```
+* Or use this URL (after logging in):
+  `https://console.aws.amazon.com/resource-groups/tag-editor/home`
+
+---
+
+### 💡 **Features**
+
+| Feature                    | Description                                          |
+| -------------------------- | ---------------------------------------------------- |
+| **Cross-region tagging**   | Edit tags across multiple regions from one view      |
+| **Multi-resource tagging** | Tag EC2, S3, Lambda, RDS, and many other services    |
+| **Tag-based filtering**    | Find resources by tag key/value combinations         |
+| **Export**                 | Export resource tag data to CSV for offline analysis |
+
+---
+
+### 📌 **Tagging Best Practices**
+
+* Use a **consistent naming convention** (e.g., lowercase, hyphen-separated).
+* Use **standardized keys** like:
+
+  * `Environment`
+  * `Project`
+  * `CostCenter`
+  * `Owner`
+* Apply **automation** (e.g., via CloudFormation, Terraform, or tagging policies).
+* Leverage **tag policies** in AWS Organizations to enforce standards.
+
+---
+
+### 🚫 **Limitations**
+
+* Not all services or resource types are supported.
+* Cannot tag resources created by certain services (e.g., CloudWatch logs, ENIs in some cases).
+* Doesn’t support **automated remediation**; changes are manual unless scripted via SDK/CLI.
+
+---
+
+### 🛠️ **Related CLI Command**
+
+```bash
+aws resourcegroupstaggingapi tag-resources \
+  --resource-arn-list arn:aws:ec2:... arn:aws:s3:... \
+  --tags Key1=Value1 Key2=Value2
+```
+
+---
+
+### 🧠 **Good to Know**
+
+* Use **AWS Organizations + Service Control Policies (SCPs)** and **Tag Policies** for enterprise-wide governance.
+* Combine with **AWS Cost Explorer** to break down billing reports by tags.
+* Ideal for **auditing untagged resources** that could be overlooked.
+
+---
+Here are **study notes** on **ephemeral ports** and how they relate to **Network Access Control Lists (NACLs)** and **Security Groups** in AWS:
+
+---
+
+## 🔐 **Ephemeral Ports – Overview**
+
+* **Ephemeral ports** are **temporary ports** used by a client when it initiates a connection to a server.
+* When a client connects to a server (e.g., an EC2 instance connects to S3 or a user connects to a web server), it **uses a source port from the ephemeral range**, and the **server listens on a well-known port** (e.g., 80 or 443).
+
+---
+
+## 🔢 **Typical Ephemeral Port Ranges**
+
+| Operating System | Ephemeral Port Range |
+| ---------------- | -------------------- |
+| Linux (default)  | 32768–60999          |
+| Windows          | 49152–65535          |
+
+> You can **customize ephemeral port ranges**, but these are the common defaults.
+
+---
+
+## 🛡️ **Security Groups vs. NACLs**
+
+| Feature    | Security Group             | NACL                       |
+| ---------- | -------------------------- | -------------------------- |
+| Stateful   | ✅ Yes                      | ❌ No                       |
+| Direction  | Inbound and outbound rules | Inbound and outbound rules |
+| Rule Type  | Allow only                 | Allow or Deny              |
+| Common Use | Instance-level control     | Subnet-level control       |
+
+---
+
+## 🔄 **How Ephemeral Ports Are Used**
+
+### Example: HTTP Request to EC2
+
+1. Client sends request:
+
+   * Source: ephemeral port (e.g., 55000)
+   * Destination: EC2, port 80
+2. Response from EC2:
+
+   * Source: 80
+   * Destination: ephemeral port (e.g., 55000)
+
+---
+
+## ✅ **Security Group Configuration**
+
+Since **Security Groups are stateful**, you only need to allow **inbound traffic on the listening port (e.g., 80 or 443)**. The return traffic is automatically allowed.
+
+### Example:
+
+* Allow inbound HTTP (port 80)
+* No need to explicitly allow outbound to ephemeral ports
+
+---
+
+## ⚠️ **NACL Configuration**
+
+Since **NACLs are stateless**, you must explicitly allow both:
+
+* **Inbound traffic** to the listening port (e.g., 80)
+* **Outbound traffic** to ephemeral ports (e.g., 32768–65535 or 49152–65535)
+* **Inbound traffic** from ephemeral ports (responses)
+* **Outbound traffic** from listening port
+
+### Example (Web server on port 80):
+
+| Rule | Direction | Port Range  | Allow |
+| ---- | --------- | ----------- | ----- |
+| 100  | Inbound   | 80          | ✅     |
+| 110  | Inbound   | 32768–65535 | ✅     |
+| 100  | Outbound  | 32768–65535 | ✅     |
+| 110  | Outbound  | 80          | ✅     |
+
+> Adjust port ranges depending on the OS.
+
+---
+
+## 🔁 **Quick Recap**
+
+| Feature                        | Security Group | NACL  |
+| ------------------------------ | -------------- | ----- |
+| Need to allow ephemeral ports? | ❌ No           | ✅ Yes |
+| Stateful                       | ✅              | ❌     |
+| Easier to manage?              | ✅              | ❌     |
+
+---
+
+## 📘 Use Case Tip
+
+* **Use Security Groups** for most use cases.
+* Use **NACLs** only when **additional subnet-level control or explicit deny rules** are required.
+
+---
+Absolutely! Here's a detailed **study note** covering **all EC2 instance families**, categorized by **use cases**, performance characteristics, and AWS best practices. Perfect for AWS exams or real-world architecture decisions.
+
+---
+
+## 📘 ** EC2 Instance Types & Use Cases**
+
+Amazon EC2 instances are grouped into **families** based on their target **workloads**.
+
+---
+
+### 🔷 **1. General Purpose Instances**
+
+| Instance                    | Description                       | Common Use Cases                             |
+| --------------------------- | --------------------------------- | -------------------------------------------- |
+| **T Series (T3, T3a, T4g)** | Burstable CPU, baseline + credits | Dev/test, low-traffic web servers, small DBs |
+| **M Series (M5, M6g, M6i)** | Balanced CPU, memory, networking  | App servers, microservices, small-medium DBs |
+
+---
+
+### 🔷 **2. Compute Optimized Instances**
+
+| Instance                    | Description                       | Common Use Cases                                                                           |
+| --------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| **C Series (C5, C6g, C6i)** | High-performance CPU, less memory | High-performance web servers, compute-heavy tasks (e.g., gaming, ML inference, batch jobs) |
+
+---
+
+### 🔷 **3. Memory Optimized Instances**
+
+| Instance                       | Description                     | Common Use Cases                                           |
+| ------------------------------ | ------------------------------- | ---------------------------------------------------------- |
+| **R Series (R5, R6g, R6i)**    | High memory per vCPU            | In-memory databases (Redis, Memcached), real-time big data |
+| **X Series (X1, X2idn)**       | Massive memory, high throughput | SAP HANA, in-memory analytics                              |
+| **u Series (u-6tb1, u-12tb1)** | Bare metal, ultra-high memory   | Enterprise-grade in-memory DBs (SAP HANA scale-out)        |
+
+---
+
+### 🔷 **4. Storage Optimized Instances**
+
+| Instance                | Description               | Common Use Cases                             |
+| ----------------------- | ------------------------- | -------------------------------------------- |
+| **I Series (I3, I4i)**  | NVMe SSD, low-latency I/O | NoSQL DBs (Cassandra, MongoDB), OLTP systems |
+| **D Series (D3, D3en)** | High storage density      | Data warehousing, Hadoop, file servers       |
+| **H Series (H1)**       | High disk throughput      | MapReduce, distributed file systems          |
+
+---
+
+### 🔷 **5. Accelerated Computing Instances**
+
+| Instance              | Description                              | Common Use Cases                         |
+| --------------------- | ---------------------------------------- | ---------------------------------------- |
+| **P Series (P3, P4)** | GPU (NVIDIA), high parallelism           | Machine learning training, deep learning |
+| **G Series (G4, G5)** | GPU for graphics or inference            | ML inference, video rendering            |
+| **F Series (F1)**     | FPGA-based                               | Custom hardware acceleration             |
+| **Inf1 / Trn1**       | ML-specific chips (Inferentia, Trainium) | Cost-effective ML inference/training     |
+
+---
+
+### 🔷 **6. High Network/Throughput Optimized**
+
+| Instance                            | Description                           | Common Use Cases                                      |
+| ----------------------------------- | ------------------------------------- | ----------------------------------------------------- |
+| **z1d**                             | High-frequency CPU + high memory      | Electronic design automation (EDA), financial trading |
+| **High Performance (e.g., HPC6id)** | HPC-specific, tightly coupled compute | Scientific simulations, CFD, seismic modeling         |
+
+---
+
+## ✅ **Best Practice Use Case Mapping**
+
+| Use Case                                 | Recommended EC2 Family    |
+| ---------------------------------------- | ------------------------- |
+| Web server / App server                  | M5, M6i (general purpose) |
+| Low-cost, bursty workloads               | T3, T4g                   |
+| High-performance batch compute           | C5, C6g                   |
+| Machine learning training                | P3, P4                    |
+| ML inference at scale                    | G4, Inf1                  |
+| Redis / Memcached / Caching              | R5, R6g                   |
+| OLTP / NoSQL DB (Cassandra, MongoDB)     | I3, I4i                   |
+| Data warehouse / Hadoop                  | D3, H1                    |
+| SAP HANA                                 | X1, X2idn, u-series       |
+| Real-time analytics / Big data in-memory | R5, X1                    |
+| Video transcoding / Rendering            | G5                        |
+| Financial modeling / EDA                 | z1d                       |
+
+---
+
+## 🛠️ **Tips for Choosing Instances**
+
+* 🧠 **Memory-bound?** ➜ Choose **R, X, or u-series**
+* 💻 **Compute-bound?** ➜ Choose **C-series**
+* 💾 **I/O-bound (disk)** ➜ Choose **I, D, or H-series**
+* 🧠 **Machine learning?** ➜ **P, G, Inf1, Trn1**
+* 🎯 **Balanced workloads?** ➜ **M-series**
+* 💡 **Cost-sensitive/dev use?** ➜ **T-series**
+
+---
+
+## 📊 **Monitoring & Scaling Tips**
+
+| Feature                                    | Benefit                                                     |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| **CloudWatch Agent**                       | Enables detailed monitoring (memory, disk, custom metrics)  |
+| **Auto Scaling Groups**                    | Automatic horizontal scaling                                |
+| **Placement Groups**                       | For high-performance workloads (cluster, spread, partition) |
+| **EC2 Savings Plans / Reserved Instances** | Cost optimization for predictable workloads                 |
+
+---
+
+
+## 📘 **AWS Budgets**
+
+### 🔷 What is AWS Budgets?
+
+**AWS Budgets** is a cost management tool that allows you to **set custom budgets** and **track usage, costs, RI/SP utilization**, and **receive alerts** when you approach or exceed those budgets.
+
+---
+
+### ✅ **Key Features**
+
+| Feature                    | Description                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| **Cost Budgets**           | Set limits for **monthly AWS costs**. Track actual vs forecasted.              |
+| **Usage Budgets**          | Track usage of AWS services (e.g., EC2 hours, S3 storage).                     |
+| **RI Budgets**             | Monitor Reserved Instance (RI) utilization and coverage.                       |
+| **Savings Plans Budgets**  | Track utilization and coverage of your Savings Plans.                          |
+| **Alerts & Notifications** | Send alerts via **Amazon SNS** or **AWS Chatbot** when thresholds are crossed. |
+| **Actionable Budgets**     | Optionally use **budgets actions** to trigger **IAM or SCP restrictions**.     |
+
+---
+
+### 🔒 **Budgets Actions (Governance)**
+
+| Action Type                      | Use Case                                                 |
+| -------------------------------- | -------------------------------------------------------- |
+| **Manual or Auto**               | Stop usage automatically or require approval.            |
+| **IAM Policy Enforcement**       | Deny certain services when budget exceeds threshold.     |
+| **SCP (Service Control Policy)** | Restrict services at Org level (with AWS Organizations). |
+
+---
+
+### 📌 **Key Concepts**
+
+| Concept           | Detail                                                               |
+| ----------------- | -------------------------------------------------------------------- |
+| **Threshold**     | A % (e.g., 80%, 100%) of your budget amount.                         |
+| **Time Period**   | Monthly, quarterly, or annually.                                     |
+| **Scope**         | Can be scoped by service, linked account, tag, or linked OU.         |
+| **Notifications** | Sent via **Amazon SNS** to email, Lambda, or Chatbot (Slack, Teams). |
+
+---
+
+### 🛠️ **Common Use Cases**
+
+| Use Case              | Example                                              |
+| --------------------- | ---------------------------------------------------- |
+| Cost Control          | Alert at 80% of \$1,000/month budget                 |
+| RI Tracking           | Alert if RI utilization drops below 90%              |
+| Tag-based Budgeting   | Set budget for project using `Project:Marketing`     |
+| Multi-account Budgets | Track per-account budgets using AWS Organizations    |
+| Automated Governance  | Stop non-critical EC2 instances when budget exceeded |
+
+---
+
+### 📊 **Integration with Other Services**
+
+| Service               | Integration Purpose                               |
+| --------------------- | ------------------------------------------------- |
+| **Amazon SNS**        | Send budget alerts                                |
+| **AWS Chatbot**       | Receive alerts in Slack or MS Teams               |
+| **AWS Organizations** | Create org-wide budgets                           |
+| **AWS Cost Explorer** | Visualize historical cost/usage to inform budgets |
+
+---
+
+### 💰 **AWS Budgets vs Cost Explorer**
+
+| Feature            | AWS Budgets | Cost Explorer |
+| ------------------ | ----------- | ------------- |
+| Set limits         | ✅           | ❌             |
+| Alerting           | ✅           | ❌             |
+| Forecast           | ✅           | ✅             |
+| Tag-based tracking | ✅           | ✅             |
+| Visualization      | ❌           | ✅             |
+| Historical data    | ❌ (limited) | ✅ (13 months) |
+
+---
+
+### 📅 **Retention & Limits**
+
+| Item                 | Details                           |
+| -------------------- | --------------------------------- |
+| **Data Retention**   | Cost data for the past 12 months  |
+| **Update Frequency** | Every 8–12 hours (near real-time) |
+| **Free Tier**        | 2 budgets/month for free          |
+
+---
+
+### 📝 **Best Practices**
+
+* Set **separate budgets per environment** (dev/stage/prod).
+* Use **tags** to track costs per team/project.
+* Always set alerts for **80%, 90%, and 100% thresholds**.
+* Use **Budgets Actions** with IAM/SCP to enforce guardrails.
 
 ---
