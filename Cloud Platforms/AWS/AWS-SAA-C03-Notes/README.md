@@ -3470,7 +3470,7 @@ Kubernetes as a Service (KaaS?)*
 - **Nodes** - Self managed, managed node groups or Fargate pods
     - Windows, GPU, Inferentia, Bottlerocket, Outposts, Local zones
         - Check node type
-- **Storage Providers** include - EBS, EFS, FSx Lustre, FSx for NetApp ONTAP
+- **Storage Providers** include - EBS, EFS, FSx Lustre, **FSx for NetApp ONTAP**
 - Two VPC!
     - AWS Managed
     - Customer VPC
@@ -8370,7 +8370,7 @@ Here's a table summarizing the key features and use cases for AWS DataSync:
 * **On-premises**: NFS, SMB, HDFS.
 * **AWS Cloud**: Amazon S3, Amazon EFS, Amazon FSx, Amazon S3 Glacier.
 ---
-## FSx for Windows File Server
+## FSx for Windows File Server & NetApp ONTAP (Both Linux and Windows (Hybrid))
 
 > *FSx for Windows Servers provides a native windows file system as a service which can be used within AWS, or from on-premises environments via VPN or Direct Connect*
 > 
@@ -8392,6 +8392,31 @@ Here's a table summarizing the key features and use cases for AWS DataSync:
 * **Lift-and-Shift Windows-based Applications**: Migrate on-premises Windows workloads to AWS without needing to rewrite applications.
 * **Shared File Storage for Windows Applications**: Provide shared file storage for applications running on Windows instances.
 * **Backup and Disaster Recovery**: Create backups of your file systems and use them for disaster recovery purposes.
+---
+
+## 📦 FSx for NetApp ONTAP
+
+### 🔧 Key Features:
+
+- Based on **NetApp's ONTAP** storage OS.
+- Supports **multi-protocol access**: NFS, SMB, and iSCSI.
+- Integration with **NetApp SnapMirror**, **Snapshots**, **FlexClone**.
+- **Data tiering** from SSD to capacity pool tier (cost savings).
+- NetApp tools and APIs supported (e.g., **Cloud Manager**).
+
+---
+| Feature/Attribute                 | FSx for Windows File Server        | FSx for NetApp ONTAP                   |
+| --------------------------------- | ---------------------------------- | -------------------------------------- |
+| File Protocols                    | SMB only                           | NFS, SMB, iSCSI                        |
+| Best For                          | Windows workloads with SMB access  | Mixed workloads (Windows + Linux)      |
+| AD Integration                    | Required                           | Optional (for SMB)                     |
+| Backup Mechanism                  | AWS Backup / Volume Shadow Copy    | Snapshots (NetApp-native)              |
+| Storage Efficiency                | Basic (deduplication, compression) | Advanced (inline compression, tiering) |
+| Replication                       | AWS Backup or native replication   | SnapMirror (cross-region & hybrid DR)  |
+| iSCSI Block Access                | ❌ Not Supported                    | ✅ Supported                            |
+| Snapshots                         | Shadow Copies (Windows)            | NetApp Snapshots                       |
+| Use in Hybrid NetApp environments | ❌ No                               | ✅ Yes (integrated via Cloud Manager)   |
+| Multi-protocol Support            | ❌ No                               | ✅ Yes                                  |
 ---
 ---
 ## ✅ **Amazon FSx for Windows File Server & Active Directory Access Control**
@@ -10590,5 +10615,62 @@ Amazon EC2 instances are grouped into **families** based on their target **workl
 * Use **tags** to track costs per team/project.
 * Always set alerts for **80%, 90%, and 100% thresholds**.
 * Use **Budgets Actions** with IAM/SCP to enforce guardrails.
+
+---
+Here are your **📘 Study Notes on Amazon S3 Object Lambda**, formatted clearly and concisely:
+
+---
+
+
+# 📦 Amazon S3 Object Lambda
+
+## 🧩 What It Is:
+
+Amazon S3 **Object Lambda** allows you to **intercept and modify data** returned by S3 `GET`, `HEAD`, and `LIST` requests — **without modifying the original data in S3**.
+
+---
+
+## 🔧 Key Features:
+
+* Uses **AWS Lambda functions** to **transform data** when it's retrieved from S3.
+* You can **filter**, **mask**, **redact**, or **augment** data dynamically.
+* Compatible with existing S3 APIs — no client-side changes required.
+* Works with **S3 Access Points**.
+
+---
+
+## 🛠 Common Use Cases:
+
+| Use Case                 | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| **PII Redaction**        | Remove personally identifiable information (e.g., redact SSNs or emails). |
+| **Data Transformation**  | Convert formats on the fly (e.g., XML → JSON).                            |
+| **Row/Column Filtering** | Return only relevant portions of large datasets.                          |
+| **Adding Metadata**      | Enrich objects with dynamic headers or tags before delivery.              |
+
+---
+
+## 📌 Architecture Components:
+
+* **S3 Bucket**: Stores the original unmodified data.
+* **S3 Access Point**: Controls access to the bucket.
+* **Object Lambda Access Point**: Configured with a Lambda function that processes the data.
+* **Lambda Function**: Executes logic (e.g., transform, redact) before returning the response.
+
+---
+
+## ✅ Benefits:
+
+* No need to preprocess or duplicate S3 objects.
+* Dynamically control output per requester or use case.
+* Enforces **least privilege access** — e.g., allow access to only redacted views of the object.
+
+---
+
+## ⚠️ Considerations:
+
+* Additional **latency** due to Lambda processing.
+* **Costs** for Lambda invocations and data retrieval apply.
+* Ensure **IAM permissions** for S3 Object Lambda and Lambda execution role.
 
 ---
