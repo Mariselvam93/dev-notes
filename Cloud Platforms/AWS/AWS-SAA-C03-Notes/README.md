@@ -299,16 +299,16 @@ us-east-1a, us-east-1b, …, us-east-1f
 * Place a database in a **private subnet**.
 * Set up NAT Gateway in a **public subnet** to allow internet access from private subnets.
 
-![alt text](Img/SubnetCalc.png)
+![alt text](img/SubnetCalc.png)
 
-![alt text](Img/SubnetCalc2.png)
+![alt text](img/SubnetCalc2.png)
 ---
 ## To Calculate the CIDR:
 - Use this tool to calculate your IP Address ranges for Subnets.
 
 > https://www.ipaddressguide.com/cidr
 ---
-![alt text](Img/RoutetTableForVPC.png)
+![alt text](img/RoutetTableForVPC.png)
 ---
 ### 🔐 Security and Routing:
 
@@ -1091,11 +1091,11 @@ Minimal setup and fully managed.
 * **CloudTrail** tracks **"who did what"** in your AWS account.
 * **CloudWatch** monitors **"how well it's running"**.
 ---
-![alt text](Img/CloudWatch.png)
+![alt text](img/CloudWatch.png)
 
-![alt text](Img/CloudTrail.png)
+![alt text](img/CloudTrail.png)
 
-![alt text](Img/CloudWatch-Trail-Config.png)
+![alt text](img/CloudWatch-Trail-Config.png)
 ---
 ## AWS Control Tower
 
@@ -2041,7 +2041,7 @@ VPC Design - End state
 - Then access internal VPC resources
 - Often the only way IN to a VPC
 ---
-![alt text](Img/BastionHost.png)
+![alt text](img/BastionHost.png)
 ---
 ## Stateful vs Stateless Firewalls
 
@@ -2120,7 +2120,7 @@ Every subnet has an associated NACL
 - Each subnet can have **ONE NACL** (default or custom)
 - A NACL can be associated with **MANY Subnet**
 ---
-![alt text](Img/NACL.png)
+![alt text](img/NACL.png)
 ---
 
 ## VPC Security Groups (SG)
@@ -2216,7 +2216,7 @@ Reduce admin overhead*
 
 ---
 ## Site to Site VPN
-![alt text](Img/SiteToSiteVPN.png)
+![alt text](img/SiteToSiteVPN.png)
 
 ### 🛡️ AWS Site-to-Site VPN Overview
 
@@ -2386,9 +2386,9 @@ EC2 Architecture
 
 https://aws.amazon.com/ec2/instance-types/
 
-![alt text](Img/EC2InstanceTypeNamingConvention.png)
+![alt text](img/EC2InstanceTypeNamingConvention.png)
 
-![alt text](Img/CommonPorts.png)
+![alt text](img/CommonPorts.png)
 
 https://instances.vantage.sh/
 
@@ -3062,9 +3062,9 @@ Relogin
 
 ## EC2 Purchase Options (Launch Types)
 
-![alt text](Img/EC2PurchaseOptions.png)
+![alt text](img/EC2PurchaseOptions.png)
 
-![alt text](Img/EC2PurchaseOptionsExample.png)
+![alt text](img/EC2PurchaseOptionsExample.png)
 ### On-Demand
 
 - Default
@@ -3092,7 +3092,7 @@ Relogin
 - **Bursty** capacity needs
 - **Cost sensitive** workloads
 - Anything which is **stateless**
-![alt text](Img/SpotFleets.png)
+![alt text](img/SpotFleets.png)
 ### Reserved
 
 > Long term consistent usage of EC2
@@ -5392,7 +5392,7 @@ Equally distribute load to instances across AZs
 ![Untitled](img/Untitled%20124.png)
 
 ---
-![alt text](Img/Serverless.png)
+![alt text](img/Serverless.png)
 ---
 ## AWS Lambda
 
@@ -5548,7 +5548,7 @@ While Lambda itself is a single service, it can be **invoked in different ways**
 * **Layers**: Share libraries/dependencies across functions
 
 ---
-![alt text](Img/Lambda.png)
+![alt text](img/Lambda.png)
 ---
 
 ## CloudWatchEvents and EventBridge
@@ -7699,7 +7699,7 @@ aws ec2 create-vpc-endpoint \
 * More secure access to AWS services.
 * Reduced latency and cost.
 
-![alt text](Img/Endpoints.png)
+![alt text](img/Endpoints.png)
 ---
 
 ### Architecture
@@ -9631,7 +9631,7 @@ Amazon DynamoDB is a fully managed, serverless NoSQL database service provided b
 ![Untitled](img/Untitled%20244.png)
 
 ---
-![alt text](Img/RedShift.png)
+![alt text](img/RedShift.png)
 ---
 
 # 🤖Machine Learning📘
