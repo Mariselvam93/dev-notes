@@ -1,9 +1,64 @@
-## 🔧 DHCP Options Set
+# 📘 AWS DHCP Options Set
 
-* **Key Terms**: Domain Name Servers (DNS), Domain Name, NTP Servers, NetBIOS name server.
-* **Use Case**: Used to define custom DNS settings for instances in a VPC.
-* **Association**: Can be associated with one or more VPCs.
-* **Example**: Assigning internal domain names (e.g., `corp.internal`) to instances.
+## 🧾 What is it?
+A **DHCP Options Set** in AWS is a configuration attached to a **VPC** that defines how DHCP (Dynamic Host Configuration Protocol) provides network configuration parameters to instances.
+
+---
+
+## 🔧 Key Components
+
+| Option Name        | Description                                                                 |
+|--------------------|-----------------------------------------------------------------------------|
+| `domain-name`      | The DNS domain name (e.g., `ec2.internal`, `example.com`)                   |
+| `domain-name-servers` | IP addresses of DNS servers (e.g., AmazonProvidedDNS or custom IPs)     |
+| `ntp-servers`      | Network Time Protocol servers IP addresses (optional)                      |
+| `netbios-name-servers` | IP addresses for NetBIOS name servers (for Windows networking)         |
+| `netbios-node-type` | Type of NetBIOS node (1: broadcast, 2: peer-peer, 8: hybrid - recommended) |
+
+---
+
+## 🗂️ How It Works
+
+- Instances in a VPC **automatically use** the associated DHCP options set when they are launched.
+- AWS provides a **default DHCP options set** per region.
+- You can **create custom sets** for use cases like:
+  - Using **on-premises DNS** with hybrid cloud setups.
+  - Defining a **custom domain** for internal resolution.
+  - Overriding the **default Amazon DNS** settings.
+
+---
+
+## ⚙️ Usage Examples
+
+- **Hybrid environments**: Point EC2 instances to on-prem DNS (e.g., Active Directory).
+- **Custom domain**: Use a company’s private DNS suffix.
+- **Time sync**: Set custom NTP servers for consistent timekeeping.
+
+---
+
+## 🚧 Considerations
+
+- You can **associate only one DHCP options set per VPC**.
+- Changing the DHCP options set will affect **new DHCP leases only** (e.g., after reboot/reconnect).
+- Cannot directly modify a DHCP options set — must **create a new one** and associate it with the VPC.
+
+---
+
+## ✅ Best Practices
+
+- Use **AmazonProvidedDNS** unless you have specific requirements.
+- Always test custom options with a **staging VPC**.
+- Document changes when associating a new DHCP options set.
+
+---
+
+## 📝 AWS CLI Tip
+
+```bash
+aws ec2 create-dhcp-options \
+  --dhcp-configurations \
+    "Key=domain-name,Values=example.com" \
+    "Key=domain-name-servers,Values=10.0.0.2"
 
 ---
 
