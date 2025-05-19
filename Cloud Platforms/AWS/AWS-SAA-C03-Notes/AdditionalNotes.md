@@ -1,11 +1,3 @@
-Here's your AWS SAA-C03 study notes properly formatted in **Markdown**, with enhancements, missing keywords, and additional context added for each item.
-
----
-
-# 🧠 AWS SAA-C03 Study Notes
-
----
-
 ## 🔧 DHCP Options Set
 
 * **Key Terms**: Domain Name Servers (DNS), Domain Name, NTP Servers, NetBIOS name server.

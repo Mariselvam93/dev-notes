@@ -208,8 +208,14 @@ Unit of consumption is what makes each service model different - application vs 
 
 ++ Faas, CaaS, DBaaS
 
-
-
+---
+| Model       | Who Manages What                   | Examples                     |
+| ----------- | ---------------------------------- | ---------------------------- |
+| **IaaS**    | You manage: App, Data, Runtime, OS | EC2, Azure VM                |
+| **PaaS**    | You manage: App, Data              | Heroku, Google App Engine    |
+| **SaaS**    | Vendor manages everything          | Office 365, Dropbox, Netflix |
+| **On-Prem** | You manage everything              | Traditional datacenter setup |
+---
 ## 🗣YAML - *YAML Ain't Markup Language*
 
 > Human readable data serialization language.
@@ -272,6 +278,14 @@ us-east-1a, us-east-1b, …, us-east-1f
 - **Globally** resilient: IAM and Route 53. Can tolerate failure of multiple regions without affecting service.
 - **Region** resilient: If an AZ in a region fails, the service can continue operating. If all AZ fails, the service fails.
 - **AZ** resilient
+
+---
+| Scope    | Example       | Description                                    |
+| -------- | ------------- | ---------------------------------------------- |
+| Global   | IAM, Route 53 | Resilient across all regions                   |
+| Regional | S3, EC2       | Survive AZ failures but not full region outage |
+| AZ-Level | EBS           | Isolated within an availability zone           |
+---
 
 ## Virtual Private Cloud (VPC) Basics
 
@@ -5149,6 +5163,52 @@ Equally distribute load to instances across AZs
 ![alt text](img/image-3.png)
 ---
 
+
+## SSL Offload & Session Stickiness
+
+> *SSL Bridging, SSL Pass Through, SSL Offloading*
+> 
+
+### SSL Offload
+
+- Bridging
+- Pass-through
+- Offload
+    - HTTP from ELB to EC2 instances
+
+![Untitled](img/Untitled%20118.png)
+
+### Connection Stickiness
+
+![Untitled](img/Untitled%20119.png)
+
+## Gateway Load Balancers (GWLB)
+
+> *Gateway Load Balancers enable you to deploy, scale, and manage virtual appliances, such as firewalls, intrusion detection and prevention systems, and deep packet inspection systems. It combines a transparent network gateway (that is, a single entry and exit point for all traffic) and distributes traffic while scaling your virtual appliances with the demand.*
+> 
+
+### Why do we need GWLB?
+
+![Untitled](img/Untitled%20120.png)
+
+### What is GWLB
+
+- Help you **run and scale** 3rd party appliances
+    - things like **firewalls, intrusion detection** and **prevention** systems
+- **Inbound** and **Outbound** traffic (transparent inspection and protection)
+- **GWLB endpoints:** Traffic enters/leaves via these endpoints
+- GWLB balances across multiple backend appliances
+- Traffic and metadata is tunnelled using **GENEVE**
+
+### How it works
+
+![Untitled](img/Untitled%20121.png)
+
+### GWLB Architecture
+
+![Untitled](img/Untitled%20122.png)
+
+
 ## Launch Configuration and Templates
 
 > *Launch Configurations and Launch Templates provide the **WHAT** to Auto scaling groups.*
@@ -5301,52 +5361,6 @@ Equally distribute load to instances across AZs
 - **Custom** - Instances marked **healthy** & **unhealthy** by external system
 - Health check grace period (Default **300s**) - **Delay before starting checks**
     - allows **system launch**, **bootstrapping** and **application start**
-
-## SSL Offload & Session Stickiness
-
-> *SSL Bridging, SSL Pass Through, SSL Offloading*
-> 
-
-### SSL Offload
-
-- Bridging
-- Pass-through
-- Offload
-    - HTTP from ELB to EC2 instances
-
-![Untitled](img/Untitled%20118.png)
-
-### Connection Stickiness
-
-![Untitled](img/Untitled%20119.png)
-
-## Gateway Load Balancers (GWLB)
-
-> *Gateway Load Balancers enable you to deploy, scale, and manage virtual appliances, such as firewalls, intrusion detection and prevention systems, and deep packet inspection systems. It combines a transparent network gateway (that is, a single entry and exit point for all traffic) and distributes traffic while scaling your virtual appliances with the demand.*
-> 
-
-### Why do we need GWLB?
-
-![Untitled](img/Untitled%20120.png)
-
-### What is GWLB
-
-- Help you **run and scale** 3rd party appliances
-    - things like **firewalls, intrusion detection** and **prevention** systems
-- **Inbound** and **Outbound** traffic (transparent inspection and protection)
-- **GWLB endpoints:** Traffic enters/leaves via these endpoints
-- GWLB balances across multiple backend appliances
-- Traffic and metadata is tunnelled using **GENEVE**
-
-### How it works
-
-![Untitled](img/Untitled%20121.png)
-
-### GWLB Architecture
-
-![Untitled](img/Untitled%20122.png)
-
-
 
 # 🌈 Serverless and Application Services
 
@@ -6287,7 +6301,6 @@ https://docs.aws.amazon.com/apigateway/latest/api/CommonErrors.html
 - Best-effort ordering, no rigid preservation of message order
 - At least once delivery, can be more than one copy of a message
 - Decoupling, worker pools, batch for future processing
-- 
 
 ## SQS Delay Queues
 
@@ -7183,7 +7196,6 @@ Output to S3 / Redshift / Athena
 - **Versioned file names**: whiskers1_v1.jpg // _v2.jpg // _v3.jpg
     - Not S3 object versioning
     - **More cost effective!**
-- 
 
 ## AWS Certificate Manager (ACM)
 
@@ -7527,13 +7539,13 @@ Field-Level Encryption works with:
 
 ![alt text](img/CloudFrontandGA.png)
 ---
-An **Origin Access Identity (OAI)** is a feature in Amazon CloudFront that enhances the security of your Amazon S3 content by restricting direct public access. Instead of allowing users to access your S3 bucket directly, OAI ensures that only CloudFront can retrieve content from your S3 origin.([Orca Security][1], [CloudDefense.AI][2])
+An **Origin Access Identity (OAI)** is a feature in Amazon CloudFront that enhances the security of your Amazon S3 content by restricting direct public access. Instead of allowing users to access your S3 bucket directly, OAI ensures that only CloudFront can retrieve content from your S3 origin.
 
 ---
 
 ### 🔐 What Is an Origin Access Identity (OAI)?
 
-An OAI is a special CloudFront user that you associate with your distribution. By updating your S3 bucket policy to grant read permissions solely to this identity, you prevent users from bypassing CloudFront and accessing your content directly via S3 URLs. This setup ensures that all access to your S3 content goes through CloudFront, allowing you to leverage its caching, logging, and access control features .([Scaler][3])
+An OAI is a special CloudFront user that you associate with your distribution. By updating your S3 bucket policy to grant read permissions solely to this identity, you prevent users from bypassing CloudFront and accessing your content directly via S3 URLs. This setup ensures that all access to your S3 content goes through CloudFront, allowing you to leverage its caching, logging, and access control features .
 
 ---
 
@@ -7542,18 +7554,18 @@ An OAI is a special CloudFront user that you associate with your distribution. B
 * **Enhanced Security**: Blocks unauthorized direct access to your S3 bucket.
 * **Access Control**: Ensures that only CloudFront can fetch content from your S3 origin.
 * **Prevention of Hotlinking**: Stops others from embedding your assets directly via S3 URLs.
-* **Improved Content Delivery**: Leverages CloudFront's caching and distribution capabilities for faster content delivery.([Orca Security][1])
+* **Improved Content Delivery**: Leverages CloudFront's caching and distribution capabilities for faster content delivery.
 
 ---
 
 ### ⚠️ Transition to Origin Access Control (OAC)
 
-While OAI has been instrumental in securing S3 origins, AWS has introduced **Origin Access Control (OAC)** as its successor. OAC offers enhanced security features and broader functionality:([Amazon Web Services, Inc.][4])
+While OAI has been instrumental in securing S3 origins, AWS has introduced **Origin Access Control (OAC)** as its successor. OAC offers enhanced security features and broader functionality:
 
 * **Support for All AWS Regions**: Including newer opt-in regions.
 * **Integration with SSE-KMS**: Supports Amazon S3 server-side encryption with AWS KMS.
 * **Dynamic Request Support**: Handles HTTP methods like PUT, POST, and DELETE.
-* **Improved Security Practices**: Utilizes short-term credentials and frequent rotations .([AWS Documentation][5], [Amazon Web Services, Inc.][4])
+* **Improved Security Practices**: Utilizes short-term credentials and frequent rotations.
 
 AWS recommends migrating from OAI to OAC to take advantage of these features and to future-proof your content delivery setup .
 
@@ -9075,7 +9087,42 @@ Let’s say your company is developing a financial services application that pro
 
 ---
 
+| Feature                 | **AWS KMS**                                                               | **AWS CloudHSM**                                                          |
+| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Type**                | Fully managed key management service                                      | Dedicated hardware security module (HSM)                                  |
+| **FIPS Compliance**     | FIPS 140-2 Level 2                                                        | FIPS 140-2 Level 3                                                        |
+| **Key Storage**         | Managed by AWS, customer controls keys                                    | Customer exclusively controls keys and hardware                           |
+| **Key Material Access** | AWS never exposes or gives access to key material                         | Customer has full control over key material                               |
+| **Ease of Use**         | Simple integration with AWS services                                      | Complex setup, needs client-side integration                              |
+| **Multi-Region**        | Supports multi-Region keys                                                | Regional only                                                             |
+| **Use Cases**           | General-purpose encryption, compliance, integrated with most AWS services | Regulated industries needing full HSM control (e.g., finance, government) |
+| **Cost**                | Pay per key usage (low cost)                                              | High cost (dedicated HSM instances)                                       |
+| **Scalability**         | Scales automatically                                                      | Manual scaling by adding HSMs to the cluster                              |
+| **Access Control**      | IAM policies                                                              | HSM-level user management (Crypto User/Admin)                             |
+| **Integration**         | Native integration with AWS services (e.g., S3, EBS, Lambda, RDS)         | Requires client-side SDKs or PKCS#11/JCE                                  |
 
+---
+## 🧠 When to Use
+
+* ✅ **Use AWS KMS**:
+
+  * For most use cases (encryption at rest, data protection)
+  * When you want managed keys with easy AWS integration
+  * For compliance needs like PCI-DSS, HIPAA, FedRAMP
+
+* ✅ **Use AWS CloudHSM**:
+
+  * When you need full control of encryption keys
+  * For custom key management applications
+  * For regulatory requirements needing FIPS 140-2 Level 3 or on-prem-like control
+
+---
+
+## 📌 Summary
+
+* **KMS** = Managed, easy, integrates with AWS, great for 95% of use cases.
+* **CloudHSM** = You control everything (hardware, keys, users), for highly regulated workloads.
+---
 ## AWS Config
 
 > *AWS Config is a service which records the configuration of resources over time (configuration items) into configuration histories.*
@@ -9690,7 +9737,47 @@ Amazon DynamoDB is a fully managed, serverless NoSQL database service provided b
     - samle utterances - ways in which an intent might be said “**can I order”** “I want to order” “Give me a”
     - How to fulfil the intent - **lambda integration**
 - Slot (parameters… e.g. Size small/medium/large, crust normal or cheesy)
+---
+# 🧠 Amazon Lex vs Amazon Transcribe
 
+| Feature               | **Amazon Lex**                                                | **Amazon Transcribe**                                      |
+|-----------------------|---------------------------------------------------------------|-------------------------------------------------------------|
+| **Purpose**           | Build conversational interfaces (chatbots)                    | Convert speech to text (speech recognition)                 |
+| **Functionality**     | Natural Language Understanding (NLU) + ASR                    | Automatic Speech Recognition (ASR) only                     |
+| **Main Use Case**     | Chatbots, voice assistants, automated customer service        | Audio transcription, call analytics, subtitles              |
+| **Input**             | Voice or text                                                 | Audio files (MP3, WAV, FLAC) or live stream                 |
+| **Output**            | Structured response (intent, slots, confirmation, etc.)       | Plain text transcription with timestamps                    |
+| **Key Features**      | - Intent recognition<br>- Slot filling<br>- Dialog management<br>- Multi-turn conversations | - Speaker identification<br>- Custom vocabulary<br>- Channel identification<br>- Real-time transcription |
+| **Integration**       | Directly integrates with Amazon Connect, AWS Lambda           | Commonly used with Amazon Comprehend, S3, Lambda            |
+| **Language Support**  | Fewer languages supported                                     | Many languages and dialects supported                       |
+| **Custom Logic**      | Built-in integration with Lambda for business logic           | Output can be processed by other AWS services               |
+| **Example Use Case**  | “Book a flight from NYC to LA” — identifies intent, destination, date, etc. | Convert a 30-minute support call to text                    |
+
+---
+
+## ✅ When to Use
+
+- **Use Amazon Lex** when:
+  - You need to build a **chatbot** or **voice assistant**
+  - You need **NLU**, slot filling, and multi-turn conversation
+
+- **Use Amazon Transcribe** when:
+  - You want to **convert speech to text**
+  - You're working with **call center recordings**, **transcripts**, or **subtitles**
+
+---
+
+## 🔁 Relationship
+
+- **Amazon Lex uses Amazon Transcribe** internally to convert speech to text (ASR), but adds NLU and conversational capabilities.
+
+---
+
+## 📝 Summary
+
+- **Amazon Lex** = Speech/Text → Intent → Response (Chatbots)
+- **Amazon Transcribe** = Speech → Text (Transcription)
+---
 ## Amazon Polly
 
 > *Amazon Polly is a service that turns text into lifelike speech, allowing you to create applications that talk, and build entirely new categories of speech-enabled products.*
@@ -9717,7 +9804,6 @@ Amazon DynamoDB is a fully managed, serverless NoSQL database service provided b
 - **Per image** or **per minute** (video) pricing
 - Integrates with applications & event-driven
 - Can even **analyse live video** streams - kinesis video streams
-- 
 
 ## Amazon Textract
 
@@ -10131,11 +10217,10 @@ Lake Formation introduces a new model **beyond IAM**, allowing:
 * **Amazon QuickSight** – Visualize data with Lake Formation access rules
 
 ---
-Here's a **well-formatted Markdown study note** for **Amazon Pinpoint**, tailored for the AWS Solutions Architect Associate (SAA-C03) exam, including key concepts, use cases, and important features:
 
 ---
 
-# 📣 Amazon Pinpoint – AWS SAA-C03 Study Notes
+# 📣 Amazon Pinpoint 
 
 ## 🔍 Overview
 
