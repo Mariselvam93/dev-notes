@@ -10759,3 +10759,70 @@ Amazon S3 **Object Lambda** allows you to **intercept and modify data** returned
 * Ensure **IAM permissions** for S3 Object Lambda and Lambda execution role.
 
 ---
+
+## 🔐 **AWS Systems Manager Session Manager** – 
+
+### ✅ **What is Session Manager?**
+
+**Session Manager** is a feature of **AWS Systems Manager** that enables secure and auditable **remote shell access** to Amazon EC2 instances and on-premises servers — **without the need for SSH keys, bastion hosts, or open inbound ports**.
+
+---
+
+### 🔑 **Key Features**
+
+* **Secure shell access** to instances via browser or AWS CLI.
+* **No need for SSH or RDP**, eliminating the risk of key management.
+* Works **without opening inbound ports** — enhances security.
+* **Logging and auditing** of sessions via Amazon S3 or CloudWatch Logs.
+* Supports **multi-factor authentication (MFA)** and **IAM-based permissions**.
+
+---
+
+### 🧰 **Common Use Cases**
+
+| Use Case              | Benefit                         |
+| --------------------- | ------------------------------- |
+| EC2 administration    | Secure and direct access        |
+| No SSH key management | Simpler ops and better security |
+| Audit and compliance  | Session logs for accountability |
+| Private subnet access | No need for bastion hosts       |
+
+---
+
+### ⚙️ **How It Works**
+
+1. **SSM Agent** must be installed and running on the instance.
+2. Instance must have an **IAM role** with `ssm:StartSession` and related permissions.
+3. Session Manager connects via **AWS Systems Manager endpoints** — **no inbound traffic required**.
+
+---
+
+### 🧪 **Command Line Example**
+
+```bash
+aws ssm start-session --target i-0123456789abcdef0
+```
+
+---
+
+### 📝 IAM Policy Sample
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "ssm:StartSession",
+    "ssm:TerminateSession",
+    "ssm:DescribeSessions"
+  ],
+  "Resource": "*"
+}
+```
+
+---
+
+### 🧠 Exam Tip
+
+> Session Manager is **ideal for secure, auditable instance access** without needing to manage SSH keys or expose your network.
+
+---
