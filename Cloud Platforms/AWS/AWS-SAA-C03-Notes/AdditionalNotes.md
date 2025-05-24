@@ -1016,3 +1016,131 @@ Assume a subnet like `10.0.0.0/24`. Here's what the reserved addresses mean:
 * **Use Deny** to block sensitive actions or define **exceptions** to broader permissions.
 
 ---
+Here’s a simple explanation of **Simple** and **Target Tracking** scaling policies in **Auto Scaling**:
+
+---
+
+### 🔹 **1. Simple Scaling Policy**
+
+**What it does:**
+Adds or removes a fixed number of instances when a CloudWatch alarm is triggered.
+
+**How it works:**
+
+* Based on **thresholds** (e.g., CPU > 70%)
+* Waits for the cooldown period before any other action
+
+**Example:**
+If CPU > 70%, **add 2 instances**
+If CPU < 30%, **remove 1 instance**
+
+**Use when:**
+You want **manual control** over how many instances are added or removed.
+
+---
+
+### 🔸 **2. Target Tracking Scaling Policy**
+
+**What it does:**
+Automatically adjusts capacity to keep a specific metric (e.g., CPU) at a target value.
+
+**How it works:**
+
+* You set a **target value** (e.g., keep CPU at 50%)
+* Auto Scaling **automatically calculates** how many instances to add/remove
+* No need to define alarms manually
+
+**Example:**
+Keep average **CPU utilization at 50%**
+→ It may add/remove instances automatically to maintain that.
+
+**Use when:**
+You want **automatic and smart scaling** based on a target (like CPU, request count, etc.)
+
+---
+
+### ✅ Quick Comparison
+
+| Feature   | Simple Scaling        | Target Tracking           |
+| --------- | --------------------- | ------------------------- |
+| Trigger   | CloudWatch Alarm      | Target metric (like CPU%) |
+| Control   | Manual (fixed number) | Automatic (calculated)    |
+| Cooldown  | Required              | Managed automatically     |
+| Ideal for | Basic setups          | Most common use cases     |
+---
+
+### 📨 SQS Extended Client Library — Overview
+
+The **Amazon SQS Extended Client Library** is an extension of the standard AWS SDK for SQS that supports sending **large message payloads** via **Amazon S3** instead of directly through SQS.
+
+---
+
+### 🔧 Why It’s Needed
+
+* **SQS max message size** = 256 KB.
+* When messages exceed this size (e.g., large JSON, images, reports), the extended client:
+
+  * **Stores payload in S3**.
+  * Sends a **pointer (reference)** to the S3 object in the actual SQS message.
+
+---
+
+### ✅ Key Features
+
+| Feature                         | Description                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| **Large message support**       | Send/receive messages > 256 KB by storing payload in S3.                    |
+| **Seamless integration**        | Wraps the standard `AmazonSQS` client.                                      |
+| **Automatic storage/retrieval** | Handles upload/download from S3 internally.                                 |
+| **S3-managed lifecycle**        | Can be configured to automatically delete payload from S3 after processing. |
+
+---
+
+### 🛠️ How It Works (Flow)
+
+1. **Producer**:
+
+   * Uploads the large payload to S3.
+   * Sends a pointer (e.g., S3 bucket/key) in the SQS message.
+
+2. **Consumer**:
+
+   * Receives the pointer from SQS.
+   * Downloads the full payload from S3 automatically.
+
+---
+
+### 🚀 Example Use Case
+
+* Sending **large event data**, **logs**, or **files** between distributed systems or microservices that rely on SQS queues.
+
+---
+
+### ⚠️ Things to Consider
+
+* **S3 costs** apply (storage, PUT/GET).
+* **IAM permissions** are required for both SQS and S3 access.
+* **Reliability**: Ensure cleanup if a message is not successfully processed (to avoid S3 orphaned objects).
+
+---
+
+### 🧪 Sample Code (Java)
+
+```java
+AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+
+ExtendedClientConfiguration extendedConfig = new ExtendedClientConfiguration()
+    .withLargePayloadSupportEnabled(s3, "my-bucket")
+    .withAlwaysThroughS3(true);
+
+AmazonSQSExtendedClient sqsExtendedClient = new AmazonSQSExtendedClient(sqs, extendedConfig);
+
+SendMessageRequest request = new SendMessageRequest()
+    .withQueueUrl(queueUrl)
+    .withMessageBody(largePayloadString);
+
+sqsExtendedClient.sendMessage(request);
+```
+
+---

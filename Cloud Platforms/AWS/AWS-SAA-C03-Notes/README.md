@@ -10826,3 +10826,319 @@ aws ssm start-session --target i-0123456789abcdef0
 > Session Manager is **ideal for secure, auditable instance access** without needing to manage SSH keys or expose your network.
 
 ---
+---
+
+### 💡 What Are Savings Plans?
+
+Savings Plans are flexible pricing models from AWS that offer **up to 72% discount** over On-Demand prices in exchange for a **commitment to a consistent usage** (measured in \$/hour) for a **1 or 3-year term**.
+
+---
+
+### 🔄 1. **Compute Savings Plan**
+
+| Feature            | Description                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| **Flexibility**    | Most flexible plan                                                        |
+| **Applies to**     | Any EC2 instance type, region, OS, tenancy; also Fargate and Lambda       |
+| **Use Case**       | Great for dynamic workloads and changing instance types                   |
+| **Discount Level** | Slightly lower than EC2 Instance Savings Plan                             |
+| **Best For**       | Users running compute workloads across multiple instance families/regions |
+
+---
+
+### 💻 2. **EC2 Instance Savings Plan**
+
+| Feature            | Description                                                          |
+| ------------------ | -------------------------------------------------------------------- |
+| **Flexibility**    | Less flexible — tied to a specific instance family within a region   |
+| **Applies to**     | EC2 only — specific instance family (e.g., `m5`, `t3`) in one region |
+| **Use Case**       | Good if you consistently use the same instance family                |
+| **Discount Level** | Higher discounts compared to Compute Savings Plan                    |
+| **Best For**       | Stable, predictable workloads using specific EC2 families            |
+
+---
+
+### 📊 Quick Comparison
+
+| Feature                | Compute SP        | EC2 Instance SP                   |
+| ---------------------- | ----------------- | --------------------------------- |
+| EC2 Family Flexibility | ✅ Any family      | ❌ Locked to one family            |
+| Region Flexibility     | ✅ Any region      | ❌ One region only                 |
+| OS/Tenancy Flexibility | ✅ Any             | ✅ Any                             |
+| Lambda/Fargate support | ✅ Yes             | ❌ No                              |
+| Discount %             | Lower (\~66%)     | Higher (\~72%)                    |
+| Best For               | Dynamic workloads | Predictable, consistent workloads |
+
+---
+
+### 🧠 Tip:
+
+* If you're **unsure about future instance usage**, go with **Compute Savings Plan**.
+* If you're **sure about EC2 type and region**, go with **EC2 Instance Savings Plan** for **maximum savings**.
+---
+
+### 🔐 `aws:SecureTransport` Condition Key in AWS IAM Policies
+
+The **`aws:SecureTransport`** condition key is used in AWS **IAM policies** to enforce or check whether **requests to AWS services are made over a secure (HTTPS) connection**.
+
+---
+
+### ✅ Purpose
+
+To **ensure data in transit is encrypted** by **requiring HTTPS** instead of HTTP when accessing AWS resources like S3.
+
+---
+
+### 🔍 Syntax Example
+
+```json
+"Condition": {
+  "Bool": {
+    "aws:SecureTransport": "false"
+  }
+}
+```
+
+This means: **If the request is NOT using HTTPS**, then the policy condition is triggered.
+
+---
+
+### 🚫 Common Use: Deny Insecure Access
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::my-bucket/*",
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    }
+  ]
+}
+```
+
+✅ This denies all **insecure (HTTP)** access to the S3 bucket or its objects.
+
+---
+
+### 🧠 Notes
+
+* `aws:SecureTransport` is a **global condition context key**.
+* This key is commonly used in **S3 bucket policies**.
+* It enhances **security compliance** by enforcing **encrypted communication**.
+
+---
+Here's a **secure S3 bucket policy** that **denies all requests made over HTTP** and only allows **HTTPS (SecureTransport)** access:
+
+---
+
+### ✅ **S3 Bucket Policy Enforcing HTTPS**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name",
+        "arn:aws:s3:::your-bucket-name/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 🔐 What This Policy Does:
+
+* **Deny** any S3 action (`s3:*`) made over an **insecure HTTP connection**.
+* Applies to both the **bucket** and **all objects** inside it.
+* **Allows access over HTTPS** only.
+
+---
+Sure! Here are your study notes in a clear and concise format:
+
+---
+
+### 🕹️ **Game System Event Distribution – Notes**
+
+#### ✅ **Use Case**
+
+A game system needs to:
+
+* Send **unique events** to **leaderboard**, **matchmaking**, and **authentication** services.
+* Ensure **concurrent delivery** to multiple services.
+* **Preserve the order** of events.
+
+---
+
+### ✅ **Best Solution: SNS FIFO Topics**
+
+**🟢 Amazon SNS FIFO Topics**
+
+* **Supports fan-out** to multiple subscribers (e.g., SQS FIFO, Lambda).
+* **Guarantees strict message order** using message group ID.
+* Ensures **exactly-once delivery**.
+* **Concurrent delivery** to multiple targets.
+
+---
+
+### ❌ **Other Options & Why Not**
+
+| Option                     | Description                      | Limitation                                 |
+| -------------------------- | -------------------------------- | ------------------------------------------ |
+| **A. EventBridge**         | Event routing service            | ❌ No ordering guarantee                    |
+| **C. SNS Standard Topics** | Publish-subscribe messaging      | ❌ No ordering, at-least-once delivery      |
+| **D. SQS FIFO Queues**     | Point-to-point ordered messaging | ❌ No fan-out to multiple services directly |
+
+---
+
+### ✅ **Summary Table**
+
+| Feature                    | SNS FIFO Topic |
+| -------------------------- | -------------- |
+| Publish-subscribe support  | ✅ Yes          |
+| Message ordering guarantee | ✅ Yes          |
+| Multiple subscribers       | ✅ Yes          |
+| Concurrent processing      | ✅ Yes          |
+
+---
+Here are concise **study notes** for the given scenario involving **Amazon SQS**, **SNS**, and **encryption requirements**:
+
+---
+
+### 🏥 **Secure Messaging Architecture with SQS & SNS – Notes**
+
+#### 🔐 **Encryption at Rest**
+
+* **SQS & SNS** support **server-side encryption (SSE)** using **AWS Key Management Service (KMS)**.
+* Use **Customer Managed Keys (CMKs)** to control access via fine-grained **KMS key policies**.
+
+#### 🔒 **Encryption in Transit**
+
+* Enforce HTTPS by adding the following condition to **queue/topic policies**:
+
+  ```json
+  "Condition": {
+    "Bool": {
+      "aws:SecureTransport": "true"
+    }
+  }
+  ```
+
+#### ✅ **Best Practice Implementation**
+
+1. **SQS:**
+
+   * Enable **SSE with a CMK**.
+   * Apply a **key policy** that restricts usage to **authorized hospital personnel**.
+   * Enforce **TLS-only access** via `aws:SecureTransport` condition in queue policy.
+
+2. **SNS:**
+
+   * Enable **SSE with a CMK**.
+   * Use a **key policy** to allow only **authorized principals**.
+   * (Optional) Add TLS-only condition to the **SNS topic policy**.
+
+---
+
+### 🚫 **Common Mistakes to Avoid**
+
+* **Default KMS keys** give less control than CMKs—**always prefer CMKs**.
+* **IAM policies** alone cannot restrict access to KMS keys—**use KMS key policies**.
+* Not setting `aws:SecureTransport` can allow unencrypted data in transit.
+
+---
+Here are **concise study notes** on **Provisioned Concurrency in AWS Lambda**:
+
+---
+
+### ⚙️ **Provisioned Concurrency in AWS Lambda – Notes**
+
+#### 🚀 What Is It?
+
+* **Provisioned Concurrency** ensures that a pre-defined number of Lambda instances are **initialized and ready to serve requests instantly**.
+* It eliminates **cold starts** — the latency that occurs during the first invocation or after a period of inactivity.
+
+---
+
+### 🔄 How It Works
+
+* You **configure** a set number of concurrent instances to stay warm.
+* AWS **keeps them initialized** with your function’s code and dependencies loaded.
+* These instances are used **before any new ones are initialized** during traffic spikes.
+
+---
+
+### 🧩 Use Cases
+
+* **Performance-critical applications** like:
+
+  * APIs with **predictable traffic** (e.g., morning spike)
+  * **Low-latency applications**
+  * **Gaming backends**
+  * **Real-time processing systems**
+
+---
+
+### 💵 Cost Consideration
+
+* You are **billed separately** for:
+
+  * **Provisioned concurrency** (per minute)
+  * **Invocation time** (standard Lambda pricing)
+
+---
+
+### ⚙️ How to Configure
+
+* Via:
+
+  * AWS Console (under Lambda → Versions → Aliases → Provisioned Concurrency)
+  * AWS CLI:
+
+    ```bash
+    aws lambda put-provisioned-concurrency-config \
+      --function-name my-function \
+      --qualifier prod \
+      --provisioned-concurrent-executions 10
+    ```
+  * Infrastructure as Code tools (e.g., CloudFormation, Terraform)
+
+---
+
+### 🔄 Auto Scaling Option
+
+* You can use **Application Auto Scaling** to adjust provisioned concurrency based on:
+
+  * **Schedule**
+  * **Utilization metrics**
+
+---
+
+### ✅ Benefits
+
+* **Eliminates cold start latency**
+* **Predictable performance**
+* **Reduce Latency**
+* Works well with **API Gateway**, **AppSync**, and **ALB**
+
+---
