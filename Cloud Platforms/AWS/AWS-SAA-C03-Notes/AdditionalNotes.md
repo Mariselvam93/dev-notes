@@ -1144,3 +1144,358 @@ sqsExtendedClient.sendMessage(request);
 ```
 
 ---
+Here are **concise study notes** on **Provisioned Concurrency in AWS Lambda**:
+
+---
+
+### ⚙️ **Provisioned Concurrency in AWS Lambda – Notes**
+
+#### 🚀 What Is It?
+
+* **Provisioned Concurrency** ensures that a pre-defined number of Lambda instances are **initialized and ready to serve requests instantly**.
+* It eliminates **cold starts** — the latency that occurs during the first invocation or after a period of inactivity.
+
+---
+
+### 🔄 How It Works
+
+* You **configure** a set number of concurrent instances to stay warm.
+* AWS **keeps them initialized** with your function’s code and dependencies loaded.
+* These instances are used **before any new ones are initialized** during traffic spikes.
+
+---
+
+### 🧩 Use Cases
+
+* **Performance-critical applications** like:
+
+  * APIs with **predictable traffic** (e.g., morning spike)
+  * **Low-latency applications**
+  * **Gaming backends**
+  * **Real-time processing systems**
+
+---
+
+### 💵 Cost Consideration
+
+* You are **billed separately** for:
+
+  * **Provisioned concurrency** (per minute)
+  * **Invocation time** (standard Lambda pricing)
+
+---
+
+### ⚙️ How to Configure
+
+* Via:
+
+  * AWS Console (under Lambda → Versions → Aliases → Provisioned Concurrency)
+  * AWS CLI:
+
+    ```bash
+    aws lambda put-provisioned-concurrency-config \
+      --function-name my-function \
+      --qualifier prod \
+      --provisioned-concurrent-executions 10
+    ```
+  * Infrastructure as Code tools (e.g., CloudFormation, Terraform)
+
+---
+
+### 🔄 Auto Scaling Option
+
+* You can use **Application Auto Scaling** to adjust provisioned concurrency based on:
+
+  * **Schedule**
+  * **Utilization metrics**
+
+---
+
+### ✅ Benefits
+
+* **Eliminates cold start latency**
+* **Predictable performance**
+* **Reduce Latency**
+* Works well with **API Gateway**, **AppSync**, and **ALB**
+
+---
+
+---
+
+### 📝 Notes: Automating EC2 & RDS Start/Stop with Minimal Cost
+
+#### ✅ **Best Solution:**
+
+**Use AWS Lambda with Amazon EventBridge**
+
+* **Lambda**: Serverless function to start/stop EC2 & RDS instances.
+* **EventBridge**: Triggers Lambda on a cron schedule (e.g., outside business hours).
+* **No infrastructure maintenance**.
+* **Cost-effective** (only pay for Lambda execution time).
+
+---
+
+#### 🛠️ **Why It Works:**
+
+* Automates **resource scheduling** (e.g., stop at 7 PM, start at 7 AM).
+* Can scale to multiple EC2/RDS instances.
+* Uses **AWS SDK (Boto3 / SDK for .NET, Java, etc.)** to manage resources.
+* Fully managed and secure.
+
+---
+
+#### 🚫 Alternatives & Drawbacks:
+
+* **Crontab on EC2 (Option C)**: Adds EC2 cost and maintenance.
+* **Marketplace Tools (Option B)**: May add extra cost and complexity.
+* **Elastic Resize / Scale to Zero (Option A)**:
+
+  * EC2 doesn’t support "scale to zero."
+  * RDS can't be scaled to zero (except Aurora Serverless v2).
+
+---
+### 📝 POSIX-Compliant Storage 
+---
+
+### 📌 What is POSIX?
+
+**POSIX** (Portable Operating System Interface) is a set of IEEE standards that ensures compatibility and interoperability between different Unix-like operating systems. For file systems, **POSIX compliance** means the storage supports standard file and directory operations like:
+
+* `open()`, `read()`, `write()`, `close()`
+* File permissions (`chmod`, `chown`)
+* Symbolic links, hard links
+* Locking, metadata (e.g., timestamps, ownership)
+* Directory traversal with `ls`, `cd`, etc.
+
+---
+
+### ✅ Key Characteristics of POSIX-Compliant Storage:
+
+* **Hierarchical file system structure**
+* **User/Group/Other permission model**
+* **Concurrent access with file locking**
+* **Strong consistency** (immediate visibility of file changes)
+* **Standard I/O system calls**
+
+---
+
+### 📦 AWS Services Offering POSIX-Compliant Storage:
+
+| AWS Service                          | POSIX Compliance | Description                                                            |
+| ------------------------------------ | ---------------- | ---------------------------------------------------------------------- |
+| **Amazon EFS** (Elastic File System) | ✅ Yes            | Fully managed NFS (v4.1, v4.0) file system for Linux-based workloads.  |
+| **Amazon FSx for Lustre**            | ✅ Yes            | High-performance file system used for HPC, ML – supports POSIX API.    |
+| **Amazon FSx for OpenZFS**           | ✅ Yes            | OpenZFS-based POSIX-compliant storage. Suitable for Unix workloads.    |
+| **Amazon FSx for NetApp ONTAP**      | ✅ Yes            | Fully managed ONTAP storage – supports NFS, SMB with POSIX compliance. |
+
+---
+
+### 🚫 Not POSIX-Compliant:
+
+| Service            | Reason                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| **Amazon S3**      | Object storage – lacks file system semantics like directories, permissions, or file locking. |
+| **Amazon Glacier** | Archival object storage – not designed for POSIX file access.                                |
+
+---
+
+### 🛠 Use Cases for POSIX-Compliant Storage:
+
+* Traditional Linux/Unix applications
+* Legacy enterprise apps that expect local or NFS-style file access
+* HPC workloads (e.g., genomics, financial simulations)
+* Shared home directories and configuration storage
+
+---
+### 📝 Amazon EFS (Elastic File System) Storage Tiers – Quick Notes
+
+---
+
+### 📦 EFS Storage Classes:
+
+Amazon EFS offers **two main storage classes**, each with **two access tiers**, optimized for different performance and cost needs.
+
+---
+
+### 1. **Standard Storage Class**
+
+* Designed for **frequently accessed files**.
+* Higher performance, **higher cost**.
+* Ideal for active workloads like:
+
+  * Web servers
+  * Application home directories
+  * Dev/test environments
+
+---
+
+### 2. **Infrequent Access (IA) Storage Class**
+
+* For **files not accessed every day**.
+* **Up to 92% lower cost** than Standard.
+* **Retrieval fee** applies per GB when accessed.
+* Great for:
+
+  * Backups
+  * Logs
+  * Archive-style data
+
+---
+
+### 🎛️ EFS Access Tiers
+
+| Access Tier         | Description                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| **EFS Standard**    | Default for frequent access, low latency.                                            |
+| **EFS Standard-IA** | Infrequent access, lower cost.                                                       |
+| **EFS One Zone**    | Like Standard but within a single AZ. Lower cost, **less resilient**.                |
+| **EFS One Zone-IA** | Single AZ + Infrequent Access. **Lowest cost**, use with backups or replicated data. |
+
+---
+
+### 🔄 Lifecycle Management
+
+* **Automatic tiering** via lifecycle policies.
+* Files can move from **Standard → IA** after a set number of days (e.g., 30).
+* Only applies to files **not accessed** during that period.
+
+---
+
+### ⚠️ Notes
+
+* **Standard and Standard-IA** are **multi-AZ and highly available**.
+* **One Zone tiers** are **single-AZ** and suitable for redundant or temporary data.
+
+---
+Here are the **notes** for the solution:
+
+---
+
+### 🛒 **Ecommerce App: Session Management Requirements**
+
+* **Running on**: EC2 instances in Auto Scaling group behind **ALB**
+* **DB**: Amazon RDS for MariaDB (Multi-AZ)
+* **Need**: **Durable session management** during transactions
+
+---
+
+### ✅ **Correct Answers**:
+
+**B. Use an Amazon DynamoDB table to store customer session information**
+
+* ✅ Fully managed NoSQL DB
+* ✅ Durable and highly available
+* ✅ Scales well with high traffic
+* ✅ Ideal for storing session state
+
+**D. Deploy an Amazon ElastiCache for Redis cluster to store customer session information**
+
+* ✅ In-memory store, very low latency
+* ✅ Supports TTL for session expiration
+* ✅ Widely used for fast session storage
+* ✅ Can be configured for durability with Redis replication and snapshots
+
+---
+
+### ❌ **Incorrect Options**:
+
+**A. Turn on the sticky sessions feature (session affinity) on the ALB**
+
+* ❌ Helps route users to the same instance
+* ❌ **Not durable** — session data is lost if instance terminates (due to scaling)
+
+**C. Deploy an Amazon Cognito user pool**
+
+* ❌ Used for **authentication/authorization**, not for storing session state
+* ❌ Not designed for transactional session data
+
+**E. Use AWS Systems Manager Application Manager**
+
+* ❌ Tool for **monitoring and managing** apps
+* ❌ Not used for storing user sessions
+
+---
+
+Here's a **concise comparison between AWS CloudTrail and AWS Config** presented as notes:
+
+---
+
+### ☁️ **AWS CloudTrail vs AWS Config**
+
+| Feature                 | **AWS CloudTrail**                                | **AWS Config**                                              |
+| ----------------------- | ------------------------------------------------- | ----------------------------------------------------------- |
+| 🔍 **Purpose**          | Tracks **API calls and user activity**            | Tracks **resource configurations and compliance**           |
+| 📅 **Focus**            | **Who did what, when, and from where**            | **What does the resource look like and how has it changed** |
+| 📜 **Logs**             | Captures **event history of AWS API calls**       | Captures **point-in-time configuration snapshots**          |
+| 🛠️ **Use Case**        | Security analysis, auditing, troubleshooting      | Compliance, change tracking, auditing                       |
+| ⌛ **Granularity**       | Event-based (per action)                          | Resource state over time (config history)                   |
+| 🔁 **Historical View**  | API activity trail                                | Timeline of resource configuration changes                  |
+| ✅ **Compliance Checks** | ❌ Not designed for compliance rules               | ✅ Supports **custom rules** and **managed rules**           |
+| 🔐 **Security**         | Helps identify **unauthorized access or actions** | Helps detect **drift from desired configuration**           |
+| 📤 **Integration**      | Integrates with CloudWatch, Lambda                | Integrates with AWS Config Rules, SNS, Lambda               |
+
+---
+
+### 🧠 **Summary**:
+
+* **Use CloudTrail** to **audit API activity** across AWS accounts.
+* **Use AWS Config** to **monitor resource configurations** and ensure they comply with organizational standards.
+---
+---
+
+### 📝 **Kinesis Data Streams default settings problem:  Notes:**
+
+#### 🟡 Problem Summary:
+
+* Application sends data to **Amazon Kinesis Data Streams**.
+* Every **other day**, the app **consumes** and writes data to **Amazon S3**.
+* **Some data is missing** in S3.
+
+---
+
+### 🔍 **Analysis:**
+
+| Option | Description                                                                         | Analysis                                                                                                                                                                                 |
+| ------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A**  | Update the **data retention period** in Kinesis Data Streams (default is 24 hours). | ✅ **Correct**. Since the application reads the data **every other day**, the **default 24-hour retention** period would cause Kinesis to **discard** older records before they are read. |
+| **B**  | Use Kinesis Producer Library (KPL).                                                 | ❌ Irrelevant to retention issue. KPL helps with performance while sending data, not with data loss due to retention settings.                                                            |
+| **C**  | Increase number of shards.                                                          | ❌ Throughput might be fine. The problem is not about throttling, but **missing data** due to expired retention.                                                                          |
+| **D**  | Enable S3 Versioning.                                                               | ❌ Irrelevant. S3 versioning doesn’t solve **missing** data from Kinesis. The issue is **before** data reaches S3.                                                                        |
+
+---
+
+### 📌 **Key Point**:
+
+> **Kinesis Data Streams default retention period is 24 hours**. If data is not consumed within that period, it is **lost**.
+
+---
+---
+
+### 📝 Notes:
+
+#### 📌 Use Case Summary:
+
+* Application receives **UDP** traffic from **remote devices**.
+* Must process data **immediately** and respond if needed.
+* No storage needed, but **low latency** and **rapid failover** across **Regions** are required.
+
+---
+
+### 🔍 Option Analysis:
+
+| Option | Description                                  | Evaluation                                                                                                                                                                              |
+| ------ | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A**  | Route 53 failover + NLB + Lambda             | ❌ **NLB supports UDP**, but **Lambda does not** support **UDP triggers** directly. This setup is not feasible.                                                                          |
+| **B**  | **Global Accelerator + NLB + ECS (Fargate)** | ✅ **Best Fit**: NLB supports **UDP**, ECS with Fargate handles stateless compute, and **Global Accelerator ensures low-latency global routing with automatic failover across regions**. |
+| **C**  | Global Accelerator + **ALB** + ECS           | ❌ **ALB does not support UDP** — only **HTTP/HTTPS**.                                                                                                                                   |
+| **D**  | Route 53 failover + **ALB** + ECS            | ❌ Same issue — **ALB doesn't support UDP** and **Route 53 failover is slower** compared to **Global Accelerator**.                                                                      |
+
+---
+
+### ⚡ Key Concepts:
+
+* **UDP Support**: Only **NLB** supports **UDP** (not ALB).
+* **Global Accelerator**: Offers **low-latency global routing** and **automatic regional failover** (much faster than DNS-based failover).
+* **Fargate + ECS**: Perfect for handling stateless processing without managing infrastructure.
+
+---

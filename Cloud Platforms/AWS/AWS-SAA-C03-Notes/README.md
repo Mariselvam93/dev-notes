@@ -4872,9 +4872,18 @@ However, **Aurora backups are continuous and don’t impact performance** due to
 
 ### Elastic File System
 
+---
+| Access Tier         | Description                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| **EFS Standard**    | Default for frequent access, low latency.                                            |
+| **EFS Standard-IA** | Infrequent access, lower cost.                                                       |
+| **EFS One Zone**    | Like Standard but within a single AZ. Lower cost, **less resilient**.                |
+| **EFS One Zone-IA** | Single AZ + Infrequent Access. **Lowest cost**, use with backups or replicated data. |
+---
+
 - **EFS** is an implementation of **NFSv4**
 - EFS Filesystems can be **mounted in Linux**
-    - Use POSIX permissions
+    - Use **POSIX** permissions
 - **Shared** between many EC2 instances
     - Exist separate from EC2 instances
 - Private service, via **mount targets** inside a VPC
@@ -11067,78 +11076,5 @@ Here are concise **study notes** for the given scenario involving **Amazon SQS**
 * Not setting `aws:SecureTransport` can allow unencrypted data in transit.
 
 ---
-Here are **concise study notes** on **Provisioned Concurrency in AWS Lambda**:
 
----
 
-### ⚙️ **Provisioned Concurrency in AWS Lambda – Notes**
-
-#### 🚀 What Is It?
-
-* **Provisioned Concurrency** ensures that a pre-defined number of Lambda instances are **initialized and ready to serve requests instantly**.
-* It eliminates **cold starts** — the latency that occurs during the first invocation or after a period of inactivity.
-
----
-
-### 🔄 How It Works
-
-* You **configure** a set number of concurrent instances to stay warm.
-* AWS **keeps them initialized** with your function’s code and dependencies loaded.
-* These instances are used **before any new ones are initialized** during traffic spikes.
-
----
-
-### 🧩 Use Cases
-
-* **Performance-critical applications** like:
-
-  * APIs with **predictable traffic** (e.g., morning spike)
-  * **Low-latency applications**
-  * **Gaming backends**
-  * **Real-time processing systems**
-
----
-
-### 💵 Cost Consideration
-
-* You are **billed separately** for:
-
-  * **Provisioned concurrency** (per minute)
-  * **Invocation time** (standard Lambda pricing)
-
----
-
-### ⚙️ How to Configure
-
-* Via:
-
-  * AWS Console (under Lambda → Versions → Aliases → Provisioned Concurrency)
-  * AWS CLI:
-
-    ```bash
-    aws lambda put-provisioned-concurrency-config \
-      --function-name my-function \
-      --qualifier prod \
-      --provisioned-concurrent-executions 10
-    ```
-  * Infrastructure as Code tools (e.g., CloudFormation, Terraform)
-
----
-
-### 🔄 Auto Scaling Option
-
-* You can use **Application Auto Scaling** to adjust provisioned concurrency based on:
-
-  * **Schedule**
-  * **Utilization metrics**
-
----
-
-### ✅ Benefits
-
-* **Eliminates cold start latency**
-* **Predictable performance**
-* **Reduce Latency**
-* Works well with **API Gateway**, **AppSync**, and **ALB**
-
----
