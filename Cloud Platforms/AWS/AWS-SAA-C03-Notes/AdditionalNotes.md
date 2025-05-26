@@ -2399,3 +2399,52 @@ This results in:
 > **Consolidate all of the company's accounts using AWS Organizations. Use the AWS Resource Access Manager (RAM) service to easily and securely share your resources with your AWS accounts.**
 
 ---
+
+Here are your notes based on the scenario:
+
+---
+
+### ✅ **Enforcing Encrypted EBS Volumes in AWS Organizations**
+
+**Scenario:**
+A company wants to ensure that **all new EC2 instances** launched in the **`ap-southeast-2`** Region use **encrypted EBS volumes**. The company uses **AWS Organizations** with **Service Control Policies (SCPs)** and wants **minimal disruption** to developers.
+
+---
+
+### ✅ **Recommended Steps:**
+
+1. **Enable Default EBS Encryption in Each Account (Minimally Disruptive)**
+
+   * ✅ **Action:**
+     In the **Amazon EC2 Console**, enable the **"EBS encryption by default"** setting.
+   * ✅ **Effect:**
+     All newly created EBS volumes in the account will be encrypted automatically using the default KMS key.
+
+2. **Enforce Encryption Using SCP**
+
+   * ✅ **Action:**
+     Create and attach an **SCP** to the **root OU** that **denies `ec2:CreateVolume`** if **`ec2:Encrypted` is false**.
+   * ✅ **Example SCP Condition:**
+
+     ```json
+     {
+       "Version": "2012-10-17",
+       "Statement": [
+         {
+           "Sid": "DenyUnencryptedEBSVolumes",
+           "Effect": "Deny",
+           "Action": "ec2:CreateVolume",
+           "Resource": "*",
+           "Condition": {
+             "BoolIfExists": {
+               "ec2:Encrypted": "false"
+             }
+           }
+         }
+       ]
+     }
+     ```
+   * ✅ **Effect:**
+     Prevents creation of **unencrypted** EBS volumes, even if attempted manually.
+
+---
