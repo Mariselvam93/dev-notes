@@ -5652,3 +5652,5 @@ To balance **fault tolerance**, **cost**, and the **minimum instance requirement
 
 > ✅ **3 EC2 instances in each AZ (eu-west-1a, eu-west-1b, eu-west-1c)** — Total of **9 instances**.
 ---
+
+![alt text](image-6.png)
