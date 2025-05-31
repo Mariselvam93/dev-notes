@@ -1592,7 +1592,28 @@ Here are the notes based on your provided information:
    * **Retention**: By default, metrics are stored for **30 days**, but this can be changed in CloudWatch settings.
 
 ---
+### 🧠 **Explanation:**
 
+Amazon RDS provides **Enhanced Monitoring** to give **real-time insights** into the **operating system** (OS) that your DB instance runs on. This is **different** from standard CloudWatch metrics, which are at a **higher abstraction level** and updated less frequently (typically every 1 minute).
+
+---
+
+### ✅ **Enhanced Monitoring Metrics include:**
+
+1. **OS processes** – Gives insight into all OS-level processes running on the instance.
+2. **RDS child processes** – Tracks the internal processes spawned by the RDS engine (e.g., background workers, replication processes).
+3. Network metrics, Disk I/O, File system info, etc.
+
+These are collected **directly from the host OS**, providing much more **granular and real-time** visibility (down to 1-second intervals).
+---
+| Metric               | Enhanced Monitoring | Standard CloudWatch |
+| -------------------- | ------------------- | ------------------- |
+| OS Processes         | ✅ Yes               | ❌ No                |
+| RDS Child Processes  | ✅ Yes               | ❌ No                |
+| CPU Utilization      | ❌ No                | ✅ Yes               |
+| Database Connections | ❌ No                | ✅ Yes               |
+| Freeable Memory      | ❌ No                | ✅ Yes               |
+---
 #### 🔍 **Differences Between CloudWatch and Enhanced Monitoring:**
 
 | Feature                  | CloudWatch                                 | Enhanced Monitoring              |
@@ -4468,4 +4489,1166 @@ To use a **new Amazon Machine Image (AMI)** in your Auto Scaling Group (ASG), yo
 2. **Update your Auto Scaling group** to use the new launch template (or specific version).
 3. Optionally, **start an instance refresh** to replace existing instances with ones based on the new AMI.
 
+---
+The correct and **most accurate** answer is:
+
+✅ **Configure the existing HTTP listener to redirect traffic to port 443.**
+
+---
+
+### ✅ Explanation:
+
+To automatically redirect **all HTTP traffic (port 80)** to **HTTPS (port 443)** in an **Application Load Balancer (ALB)**, you **must configure the HTTP (port 80) listener** to perform a **redirect action** to HTTPS.
+
+### 🛠 Here's how this is typically done:
+
+1. Go to the **ALB** in the AWS Management Console.
+2. Under **Listeners**, select the **HTTP (port 80)** listener.
+3. Choose **View/edit rules**.
+4. Add or edit a rule with:
+
+   * **Condition**: `Host is your-new-domain.com` (optional if redirect applies to all HTTP traffic)
+   * **Action**: `Redirect to HTTPS`
+
+     * Protocol: HTTPS
+     * Port: 443
+     * Status code: 301 (permanent redirect)
+
+---
+
+### ❌ Why the other options are incorrect:
+
+* **"Create a new ALB listener on port 443 and configure it to redirect HTTP traffic to HTTPS."**
+  → Incorrect because **port 443 is for HTTPS**, and **you can’t redirect HTTP traffic from a 443 listener**. You need to redirect **on the HTTP (port 80)** listener.
+
+* **"Configure the existing on port 443 and add a redirect action to HTTP on port 80."**
+  → Incorrect and backward. HTTPS should **not** redirect to HTTP; that would reduce security.
+
+* **"Create a new HTTP listener on port 80 and add a redirect action to the HTTPS protocol on port 443."**
+  → While technically correct, it’s redundant if an HTTP listener already exists. The better answer is to **configure the existing HTTP listener** as per the correct option.
+
+---
+The correct answer is: ✅ **Use an SQS FIFO Queue instead.**
+
+---
+
+### 📌 Explanation:
+
+Amazon SQS offers **two types of queues**:
+
+1. **Standard Queue**
+
+   * Provides **at-least-once delivery** (can lead to **duplicate messages**)
+   * Best-effort ordering (not guaranteed)
+
+2. **FIFO Queue (First-In-First-Out)**
+
+   * Ensures **exactly-once processing**
+   * Preserves the **exact order** of message delivery
+   * Prevents **duplicate messages**
+
+---
+
+### 🧠 Why this matters:
+
+Your issue involves **duplicate order processing**, which directly relates to the **lack of exactly-once message processing** in **standard queues**.
+
+Switching to a **FIFO queue** ensures:
+
+* Messages are **processed once and only once**
+* Messages are processed in the **exact order they are sent**
+
+This is exactly what you need for critical operations like **order processing** where **duplication can cause major issues**.
+
+---
+
+### ❌ Why the other options are incorrect:
+
+* **Alter the visibility timeout of SQS**:
+  Might reduce the window of duplicate processing **but doesn’t eliminate it**. It’s a workaround, not a fix.
+
+* **Alter the retention period in SQS**:
+  Controls **how long** messages stay in the queue, not how many times they are delivered or processed.
+
+* **Change the message size in SQS**:
+  Irrelevant to duplicate processing.
+
+---
+
+### ✅ Recommendation:
+
+* **Switch to a FIFO queue**
+* Use **MessageGroupId** for parallelism (if needed)
+* Set up **deduplication** using `MessageDeduplicationId` (manually or by content)
+
+---
+The correct answer is:
+
+> ✅ **Store the files in S3 then after a month, change the storage class of the `tdojo-finance` prefix to One Zone-IA while the remaining go to Glacier using lifecycle policy.**
+
+---
+
+### 🧠 **Explanation:**
+
+Your storage requirements break down into **two distinct use cases**:
+
+#### 1. **Files under the `tdojo-finance/` prefix:**
+
+* Need **millisecond retrieval time**
+* After one month, accessed **infrequently**, but **not cold enough** to tolerate long retrieval delays (so Glacier is unsuitable)
+* Do **not need multiple Availability Zones** for redundancy
+
+🔹 **Best fit**:
+✅ **S3 One Zone-Infrequent Access (One Zone-IA)**
+
+* Lower cost than S3 Standard-IA
+* Suitable for **non-critical**, infrequently accessed data
+* **Millisecond retrieval**
+* Stored in a **single AZ**
+
+#### 2. **Remaining files:**
+
+* Accessed frequently **only for the first month**
+* After that, **rarely accessed**
+* Retrieval is **occasional and non-urgent** (developers only, no SLA)
+
+🔹 **Best fit**:
+✅ **Amazon S3 Glacier**
+
+* **Low cost** for long-term archival
+* Retrieval times vary (minutes to hours), which is acceptable here
+
+---
+
+### ❌ Why the other options are incorrect:
+
+* **S3 → S3-IA for everything**
+  ❌ Not optimal — still more expensive than Glacier for archival use.
+
+* **S3 → S3-IA for `tdojo-finance`, Glacier for the rest**
+  ❌ Better than above, but `S3-IA` is more expensive than `One Zone-IA` if you don’t need multi-AZ durability.
+
+* **S3 → Intelligent-Tiering**
+  ❌ Intelligent-Tiering adds monitoring costs and is designed for **uncertain or unpredictable** access patterns — your access pattern is **predictable**, so Glacier + One Zone-IA is cheaper.
+
+---
+
+### ✅ Summary:
+
+| Data Type             | After 1 Month Storage Class | Justification                                    |
+| --------------------- | --------------------------- | ------------------------------------------------ |
+| `tdojo-finance` files | **S3 One Zone-IA**          | Millisecond access + cost savings (single AZ OK) |
+| All other files       | **S3 Glacier**              | Rarely accessed, cost-effective archival         |
+
+---
+Sure! Here are the notes summarizing the key points:
+
+---
+
+### 📝 **Notes on Auto Scaling with Forecasted Load**
+
+#### ✅ **Best Solution: Predictive Scaling**
+
+* Uses **machine learning by AWS** to forecast future traffic.
+* Automatically provisions capacity **in advance** based on historical patterns.
+* Ideal for **recurring load spikes** (e.g., weekly sales promotions).
+* **Least operational effort** and **highly effective**.
+
+---
+
+### ✅ **Conclusion**
+
+Use **Predictive Scaling** with Auto Scaling groups for:
+
+* Anticipating load based on trends.
+* Minimizing downtime during predictable spikes.
+* Reducing manual intervention and operational overhead.
+--
+
+Here are the **notes** for the question regarding **LDAP integration with AWS when SAML is not supported**:
+
+---
+
+### 📝 **LDAP Integration with AWS IAM (Non-SAML-Compatible Identity Store)**
+
+#### ✅ **Correct Approach:**
+
+> **Develop a custom identity broker on-premises and use AWS STS to issue short-lived credentials.**
+
+#### 🔍 **Explanation:**
+
+* Since **SAML is not supported**, you **cannot use AWS IAM Identity Center** or other direct SSO methods.
+* A **custom identity broker** bridges LDAP with AWS by:
+
+  * Authenticating users against **LDAP**.
+  * Requesting **temporary credentials** from **AWS STS (Security Token Service)** using `AssumeRole`.
+  * Returning the credentials to users for AWS access.
+* This allows secure, time-limited AWS access **without exposing static credentials**.
+
+---
+
+### ❌ **Incorrect Options Explained**
+
+1. **AWS IAM Identity Center with LDAP**
+
+   * ❌ Not supported **unless LDAP is made SAML-compatible**, which it isn’t in this scenario.
+
+2. **IAM roles to rotate IAM credentials when LDAP is updated**
+
+   * ❌ IAM credentials are not linked to LDAP.
+   * Rotating static IAM credentials manually or automatically is **not secure or scalable**.
+
+3. **IAM policy referencing LDAP identifiers**
+
+   * ❌ IAM policies do not support LDAP identifiers natively.
+   * IAM is unaware of external directory structures.
+
+---
+
+### ✅ **Best Practice Summary**
+
+* Use a **custom identity broker** for LDAP-based identity stores that are not SAML-compatible.
+* The broker authenticates users and **calls AWS STS** to get **temporary credentials** using `AssumeRole`.
+
+---
+
+Here are the **notes** summarizing the key points from the scenario about memory-based Auto Scaling for EC2 in an Auto Scaling Group (ASG):
+
+---
+
+### 📝 **Auto Scaling Group Not Scaling on High Memory Usage (EC2 + FSx + CloudWatch)**
+
+#### ✅ **Correct Solution:**
+
+> **Install the CloudWatch Unified Agent on EC2 instances. Configure a custom parameter in AWS Systems Manager Parameter Store for the agent to collect memory usage. Use a custom CloudWatch metric for memory utilization and configure the ASG to scale based on this metric.**
+
+---
+
+### 💡 **Why This Works:**
+
+* **Memory utilization** is **not monitored by default** in CloudWatch for EC2.
+* You need the **CloudWatch Unified Agent** to collect **custom metrics** like memory, disk, etc.
+* Use **Systems Manager Parameter Store** to manage the CloudWatch agent config (centralized and scalable).
+* Once the metric is available in CloudWatch, you can:
+
+  * Create a **custom scaling policy**.
+  * Use **CloudWatch alarms** on the **aggregated memory usage** to trigger ASG scaling.
+
+---
+
+### ❌ **Why Other Options Are Incorrect:**
+
+1. **Amazon Comprehend & SageMaker**
+
+   * ❌ These are NLP and ML services **not meant for monitoring EC2 memory or Auto Scaling**.
+
+2. **Amazon Rekognition & AWS Well-Architected Tool**
+
+   * ❌ Rekognition is for **image and video analysis**, not performance monitoring.
+   * ❌ Well-Architected Tool is for **architecture reviews**, not operational triggers.
+
+3. **Detailed Monitoring + Custom Metrics (your answer)**
+
+   * ❌ Detailed monitoring only gives **1-minute granularity**, but still **does not include memory usage**.
+   * ❌ Without the **Unified Agent**, memory metrics are **not available** in CloudWatch.
+
+---
+
+### ✅ **Best Practice Summary**
+
+| Component                | Purpose                                              |
+| ------------------------ | ---------------------------------------------------- |
+| CloudWatch Unified Agent | Collects OS-level metrics like memory usage          |
+| Parameter Store          | Stores agent config centrally for multiple EC2s      |
+| Custom CloudWatch Metric | Aggregates memory usage across instances             |
+| Auto Scaling Policy      | Uses alarm on custom metric to scale based on memory |
+
+---
+
+Certainly! Here's the updated version of your notes including the full **Amazon Resource Name (ARN)** used in the IAM policy:
+
+---
+
+### 📝 **IAM Policy for AWS Directory Service via AD Connector**
+
+#### ✅ **Correct Answer:**
+
+> **Allows all AWS Directory Service (`ds:*`) calls as long as the resource contains the directory ID: `d-1234567890`**
+
+---
+
+### 🔍 **Policy Breakdown:**
+
+```json
+{
+ "Version":"2012-10-17",
+ "Statement":[
+  {
+   "Sid":"DirectoryTutorialsDojo1234",
+   "Effect":"Allow",
+   "Action":[
+    "ds:*"
+   ],
+   "Resource":"arn:aws:ds:us-east-1:987654321012:directory/d-1234567890"
+  },
+  {
+   "Effect":"Allow",
+   "Action":[
+   "ec2:*"
+   ],
+   "Resource":"*"
+  }
+ ]
+}
+```
+
+---
+
+### ✅ **ARN Used:**
+
+```
+arn:aws:ds:us-east-1:987654321012:directory/d-1234567890
+```
+
+| Component         | Value                    |
+| ----------------- | ------------------------ |
+| **Service**       | `ds` (Directory Service) |
+| **Region**        | `us-east-1`              |
+| **Account ID**    | `987654321012`           |
+| **Resource type** | `directory`              |
+| **Directory ID**  | `d-1234567890`           |
+
+---
+
+### ✅ **What this Policy Allows:**
+
+* All actions in **AWS Directory Service (`ds:*`)**, but **only** for the directory with ID `d-1234567890`.
+* Full access to **Amazon EC2 actions (`ec2:*`)** for **all EC2 resources**.
+
+---
+
+### ❌ **Why Other Options Are Incorrect:**
+
+* `"Sid": "DirectoryTutorialsDojo1234"` is a **statement ID**, only for documentation/logging—**not the actual directory ID**.
+* `987654321012` is the **account ID**, not the directory.
+* Only **`d-1234567890`** represents the **actual Directory Service resource ID** used in the ARN.
+
+---
+
+Sure! Here's the updated note including your additional details:
+
+---
+
+### ❓ Why does an EC2 instance in a new VPC have no associated DNS hostname?
+
+**Correct Answer:**
+The VPC’s **DNS resolution** and **DNS hostnames** settings are **not enabled**.
+
+---
+
+### 🔍 Explanation:
+
+* **Default VPC behavior:**
+  When you launch an EC2 instance into a **default VPC**, AWS automatically provides **both public and private DNS hostnames** that correspond to the instance’s public IPv4 and private IPv4 addresses.
+
+* **Non-default VPC behavior:**
+  When launching into a **non-default VPC**, AWS provides the instance with **only a private DNS hostname by default**.
+  The instance will get a **public DNS hostname only if**:
+
+  * The VPC has **DNS resolution** and **DNS hostnames** enabled, **and**
+  * The instance has a **public IPv4 address**.
+
+* In this case, the instance **does not get a DNS hostname** because the **DNS resolution** and **DNS hostnames attributes are disabled** in the newly created VPC.
+
+* This issue is unrelated to Amazon Route 53, security groups, or invalid CIDR blocks.
+
+---
+![alt text](image-2.png)
+---
+### 🛠 How to fix:
+
+* Go to **AWS Console** → **VPC** → select your VPC →
+  Click **Actions** → **Edit DNS hostnames and DNS resolution** →
+  Enable both **DNS resolution** and **DNS hostnames**.
+
+---
+
+Here’s a concise note explaining the solution for this streaming data and low-latency processing scenario:
+
+---
+
+### Scenario:
+
+A company needs to process **real-time streaming data** globally, tracking user activity with **low latency** and **processing close to users’ geographic locations**.
+
+---
+
+### Correct Solution:
+
+* **Integrate Amazon CloudFront with Lambda\@Edge**:
+
+  * Lambda\@Edge runs your code in AWS locations worldwide, **processing user requests near the user** to reduce latency.
+  * This allows real-time processing at edge locations geographically close to users.
+
+* **Use Amazon Kinesis for real-time streaming data ingestion and processing**:
+
+  * Kinesis streams data in real-time from multiple regions/users globally.
+  * You can analyze and process the data in real-time and store results durably.
+
+* **Store processed data in Amazon S3**:
+
+  * Provides scalable, durable storage for analysis and archival.
+
+---
+
+### Why this solution?
+
+* **CloudFront + Lambda\@Edge** ensures **low latency and edge-based processing** near users globally.
+* **Kinesis** is designed for **real-time streaming data ingestion and analytics**.
+* Using **Amazon S3** for durable storage supports further analysis and querying.
+
+---
+
+### Common Incorrect Options:
+
+* Using **Athena** for real-time streaming is incorrect because Athena is a query service for data at rest, not real-time streaming.
+* Relying on **Route 53 latency or geoproximity routing** alone does not process data; it only routes traffic.
+* Combining Route 53 with CloudFront lacks the real-time edge processing Lambda\@Edge provides.
+
+---
+
+Here’s a clear explanation in note form for this scenario:
+
+---
+
+### Scenario:
+
+* Custom messaging service to receive **thousands of messages daily**
+* Messages will be processed by **Amazon EMR cluster**
+* Requirements:
+
+  * **No message loss**
+  * **No duplicates**
+  * **Messages processed in the same order as arrival**
+
+---
+
+### Correct Solution:
+
+**Create an Amazon Kinesis Data Stream to collect the messages**
+
+* **Kinesis Data Streams** provides:
+
+  * **Ordered, real-time streaming data ingestion**
+  * **Exactly-once processing (with careful consumer implementation)**
+  * High throughput with shards that can be scaled based on volume
+  * Integration with Amazon EMR for processing data in order
+
+---
+
+### Why other options are not suitable?
+
+* **Amazon SNS Topic**:
+
+  * Designed for pub/sub messaging, but does **not guarantee ordering or exactly-once delivery**. It can result in duplicates and unordered processing.
+
+* **Amazon Kinesis Data Firehose**:
+
+  * Best for **loading streaming data directly into destinations** like S3, Redshift, Elasticsearch, but Firehose **does not provide ordering guarantees** or direct integration with EMR for processing in order.
+
+* **Default Amazon SQS queue**:
+
+  * Standard queues provide **at-least-once delivery with possible duplicates and no ordering guarantees**.
+  * FIFO queues provide ordering and exactly-once processing but have throughput limits compared to Kinesis. The question specifically mentioned a "default" queue, which means standard SQS, so it doesn't meet the strict ordering and duplication requirements.
+
+---
+
+### Summary:
+
+**Amazon Kinesis Data Stream** is the best choice for real-time ordered, lossless, and duplicate-free message streaming to Amazon EMR.
+
+---
+
+Here’s a concise summary of the solution with key points:
+
+---
+
+### Scenario:
+
+* Migrate from **Microsoft SQL Server** to **Amazon Aurora PostgreSQL**
+* Goal: **Minimize application code changes**
+
+---
+
+### Correct Actions:
+
+1. **Turn on Babelfish on Aurora PostgreSQL**
+
+   * Babelfish enables Aurora PostgreSQL to understand **T-SQL (SQL Server dialect)**.
+   * Allows existing SQL Server applications to work with minimal or no query/code changes.
+   * Acts as a translation layer between SQL Server commands and PostgreSQL.
+
+2. **Use AWS Schema Conversion Tool (SCT) + AWS Database Migration Service (DMS)**
+
+   * **AWS SCT:** Converts SQL Server database schema to Aurora PostgreSQL compatible schema.
+   * **AWS DMS:** Migrates data from SQL Server to Aurora PostgreSQL with minimal downtime.
+   * Together, they enable smooth schema conversion and data migration.
+
+---
+
+### Why other options don’t fit:
+
+* **Amazon Kinesis Data Streams:** Not suitable for database migration or replication here.
+* **AWS AppConfig:** Used for managing application configurations, not database migration.
+* **AWS Glue:** Primarily for ETL jobs; not designed for migrating or converting SQL queries in this scenario.
+
+---
+
+### Summary:
+
+| Action            | Purpose                                                               |
+| ----------------- | --------------------------------------------------------------------- |
+| Babelfish         | Minimize app code changes by T-SQL compatibility on Aurora PostgreSQL |
+| AWS SCT + AWS DMS | Convert schema and migrate data efficiently                           |
+
+---
+
+Here’s a concise note summarizing the solution:
+
+---
+
+### Scenario:
+
+* FTP server on EC2 in a new VPC with default settings
+* Server should **only** be accessible from a single IP: **175.45.116.100**
+* No public access from anywhere else
+
+---
+
+### Correct Implementation:
+
+**Create a new inbound rule in the EC2 instance’s Security Group:**
+
+* **Protocol:** TCP
+* **Port Range:** 20 - 21 (FTP control and data ports)
+* **Source:** 175.45.116.100/32 (single IP address)
+* **Action:** Allow inbound traffic
+
+---
+
+### Explanation:
+
+* FTP uses **TCP**, not UDP, on ports 20 and 21.
+* Security Groups are **stateful** and are the preferred way to control instance-level inbound/outbound traffic.
+* Using `/32` CIDR notation restricts access to exactly the one IP (175.45.116.100).
+* Network ACLs are stateless and by default allow all traffic in a new VPC, so no need to modify them unless there’s a specific reason.
+* Restricting traffic via Security Groups is simpler and recommended.
+
+---
+
+### Summary:
+
+| Configuration               | Reason                                                |
+| --------------------------- | ----------------------------------------------------- |
+| Security Group inbound rule | Control access specifically to IP 175.45.116.100 only |
+| TCP ports 20-21             | FTP protocol requires TCP, not UDP                    |
+| Source 175.45.116.100/32    | Restricts to exactly one IP                           |
+
+---
+
+Let's analyze the scenario carefully:
+
+---
+
+### Requirement:
+
+* **6 EC2 instances must be running at all times** in **eu-east-2** region
+* The region has **3 AZs**: eu-east-2a, eu-east-2b, eu-east-2c
+* **100% fault tolerance** means if **any single AZ goes down**, the system should **still have 6 running instances total** in the remaining AZs.
+
+---
+
+### What does 100% fault tolerance mean here?
+
+* If one AZ fails, **the other two AZs must together still run 6 instances.**
+
+---
+
+### Options Analysis:
+
+1. **eu-east-2a: 6, eu-east-2b: 6, eu-east-2c: 0**
+
+* If AZ eu-east-2a fails, running instances = 6 (in eu-east-2b)
+* If AZ eu-east-2b fails, running instances = 6 (in eu-east-2a)
+* If AZ eu-east-2c fails, running instances = 6 + 6 = 12 (both eu-east-2a and eu-east-2b unaffected)
+* **100% fault tolerant** ✅
+
+2. **eu-east-2a: 2, eu-east-2b: 4, eu-east-2c: 2**
+
+* If AZ eu-east-2a fails, running = 4 + 2 = 6
+* If AZ eu-east-2b fails, running = 2 + 2 = 4 (less than 6, **fails fault tolerance**)
+* If AZ eu-east-2c fails, running = 2 + 4 = 6
+* **Not 100% fault tolerant** ❌
+
+3. **eu-east-2a: 2, eu-east-2b: 2, eu-east-2c: 2**
+
+* If any AZ fails, remaining instances = 2 + 2 = 4 < 6
+* **Fails fault tolerance** ❌
+
+4. **eu-east-2a: 4, eu-east-2b: 2, eu-east-2c: 2**
+
+* If eu-east-2a fails, remaining = 2 + 2 = 4 < 6
+* **Fails fault tolerance** ❌
+
+5. **eu-east-2a: 3, eu-east-2b: 3, eu-east-2c: 3**
+
+* If eu-east-2a fails, remaining = 3 + 3 = 6
+* If eu-east-2b fails, remaining = 3 + 3 = 6
+* If eu-east-2c fails, remaining = 3 + 3 = 6
+* **100% fault tolerant** ✅
+
+---
+
+### Correct answers:
+
+* **eu-east-2a with 6, eu-east-2b with 6, eu-east-2c with 0**
+* **eu-east-2a with 3, eu-east-2b with 3, eu-east-2c with 3**
+
+---
+
+Here's why the **correct answer** is the best fit:
+
+---
+
+### Scenario Recap:
+
+* Cloud-native app using **Amazon Aurora**, **Amazon EFS**, and **EventBridge + Step Functions**
+* Using **AWS IAM Identity Center (AWS Single Sign-On)** for user authentication
+* Teams: **Data science, engineering, compliance**
+* Requirements:
+
+  * Secure access to Aurora and EFS
+  * **Strict data privacy**
+  * Principle of **least privilege**
+  * **Minimize administrative overhead**
+
+---
+
+### Why the correct answer is:
+
+> **Enable the IAM Identity Center with an Identity Center directory and create permission sets for granular access for Amazon Aurora and Amazon EFS. Assign teams to groups linked to specific permission sets based on their roles.**
+
+* **IAM Identity Center** provides centralized identity and access management.
+* Permission sets allow **fine-grained, role-based access control** — matching least privilege principle.
+* You can **assign users to groups**, and assign those groups permission sets, which streamlines administration.
+* It integrates with AWS services like Aurora and EFS via IAM policies attached to the permission sets.
+* It **minimizes overhead** because you manage access centrally without juggling multiple IAM users/roles manually.
+* Aligns well with **strict data privacy** by controlling exactly what each team can access.
+
+---
+
+### Why the other options are less suitable:
+
+* **AWS Control Tower + SCPs + IAM roles in each account**:
+
+  * This is more suitable for multi-account setups, which is more complex and adds administrative overhead.
+  * It may be overkill if the organization is primarily working within one account.
+
+* **Separate AWS accounts + cross-account IAM roles**:
+
+  * Adds complexity with multi-account management.
+  * More overhead for maintaining cross-account roles and permissions.
+  * Not necessarily the best fit if minimizing admin overhead is key.
+
+* **Amazon Cognito User Pools + Identity Pools + IAM roles**:
+
+  * Cognito is primarily for user-facing application authentication (end-user identity management).
+  * Here, the requirement is to control **internal team access** to AWS resources like Aurora and EFS.
+  * Cognito adds complexity and is not ideal for managing internal team access with least privilege on AWS resources.
+
+---
+
+### Summary:
+
+**IAM Identity Center with permission sets and group assignments** is the most streamlined, secure, and least overhead solution that directly satisfies all requirements:
+
+* Centralized user management
+* Granular, least privilege access control
+* Minimal administrative complexity
+
+---
+
+Let's break down the scenario and why the **correct answer** is the best fit:
+
+---
+
+### Scenario Recap:
+
+* The company runs critical EC2 instances.
+* An instance unexpectedly powered down, impacting availability.
+* Management wants to be **notified of any upcoming AWS events that may affect these EC2 instances** proactively.
+
+---
+
+### Why the correct answer is:
+
+> **Create an Amazon EventBridge (CloudWatch Events) rule to check for AWS Personal Health Dashboard events that are related to Amazon EC2 instances. To send notifications, set an Amazon SNS topic as a target for the rule.**
+
+* **AWS Personal Health Dashboard (PHD)** provides personalized alerts and remediation guidance when AWS is experiencing events that may impact your specific resources.
+* PHD events are **specific to your account and resources** (e.g., your EC2 instances).
+* Integrating PHD with EventBridge lets you capture these personalized events automatically.
+* Using an SNS topic target enables proactive notification delivery (email, SMS, etc.) to stakeholders.
+* This approach is **recommended by AWS for proactive incident notification** regarding your resources.
+
+---
+
+![alt text](image-3.png)
+
+### Why other options are not ideal:
+
+* **AWS Service Health Dashboard (SHD) events** are **generalized service status updates** across AWS regions, not personalized for your specific account or resources.
+
+  * You might get noise from unrelated issues.
+  * Not as actionable or specific as PHD events.
+
+* **EventBridge rule on EC2 status changes + Lambda to restart**:
+
+  * This reacts *after* the issue occurs (instance stopped), not proactively *before* it happens.
+  * It attempts to automatically fix the issue rather than alerting management of upcoming events.
+
+* **Scheduled Lambda every 24 hours to check SHD**:
+
+  * Polling every 24 hours delays notifications and is inefficient.
+  * Again, uses general SHD data rather than personalized PHD events.
+  * Not real-time or event-driven.
+
+---
+
+### Summary:
+
+* **AWS Personal Health Dashboard + EventBridge + SNS** is the most direct, real-time, personalized, and recommended method to get notified about upcoming events affecting your EC2 instances.
+* It helps avoid surprises by notifying you of maintenance, outages, or other issues specific to your account and resources.
+
+---
+
+Exactly! AWS License Manager is a powerful tool to help organizations keep track of their software license usage across both AWS and on-premises environments. By centralizing license management, it helps you:
+
+* **Gain visibility** into license usage, so you know which licenses are being used, where, and by whom.
+* **Enforce rules** to prevent license over-deployment or under-utilization, helping avoid unexpected costs or compliance risks.
+* **Simplify audits** by maintaining detailed usage reports.
+* **Leverage BYOL (Bring Your Own License)** by allowing you to apply your existing licenses on AWS infrastructure, reducing the need to buy new licenses and lowering overall costs.
+
+BYOL is especially valuable for software vendors like Microsoft, Oracle, and SAP, where licenses can be expensive, and compliance is critical.
+
+If you’re designing a migration or hybrid cloud strategy, integrating AWS License Manager helps ensure you stay compliant while maximizing your license investments.
+---
+![alt text](image-4.png)
+---
+| Setting               | Description                                                 |
+| --------------------- | ----------------------------------------------------------- |
+| License counting type | Metric used to count licenses (e.g., per instance or user)  |
+| License limit         | The maximum number of licenses available                    |
+| Enforce license limit | When enabled, prevents usage above license limit            |
+| SNS topic for alerts  | Sends notifications when usage approaches or exceeds limits |
+---
+
+The correct solution is:
+
+**Use the AWS Config managed rule to check if the IAM user access keys are not rotated within 90 days. Create an Amazon EventBridge rule for the non-compliant keys, and define a target to invoke a custom Lambda function to deactivate and delete the keys.**
+
+---
+
+### Why this solution?
+
+* **AWS Config managed rule (`iam-user-access-key-rotation`)** is already built to check if IAM user access keys have been rotated within a specific time frame (90 days). This removes the need to build custom detection logic.
+* **AWS Config continuously monitors compliance**, so you don't need to schedule batch jobs or custom periodic checks.
+* **EventBridge integration with AWS Config** allows triggering events immediately when a resource becomes non-compliant.
+* A **custom Lambda function** can automatically deactivate and delete keys flagged by AWS Config, automating remediation.
+* This approach minimizes **operational overhead** by using managed services and event-driven automation, which is simpler and more maintainable than batch jobs or manual scripts.
+
+---
+
+### Why not the others?
+
+* Using EventBridge alone to filter keys older than 90 days is not straightforward because EventBridge doesn’t natively filter based on key age.
+* AWS Batch jobs add unnecessary complexity and operational overhead.
+* Custom AWS Config rules require building and maintaining additional code, whereas AWS provides a managed rule ready to use.
+
+---
+![alt text](image-5.png)
+---
+
+Your selected answer is correct:
+
+**Use a combination of Kubernetes Metrics and Kubernetes Cluster Autoscaler to manage the number of nodes.**
+
+---
+
+### Explanation:
+
+* **Kubernetes Metrics Server** provides resource usage metrics (like CPU and memory) for pods and nodes, enabling autoscaling decisions.
+* The **Kubernetes Cluster Autoscaler** automatically adjusts the number of nodes in your EKS cluster based on pending pods that cannot be scheduled due to resource constraints.
+* This combination provides **automatic, fine-grained scaling** of the cluster nodes based on actual workload demand.
+* It requires **minimal operational overhead** because it uses native Kubernetes features integrated with EKS.
+* No need to manually set CloudWatch alarms or manage custom scaling scripts.
+
+---
+
+### Why not the other options?
+
+* **AWS App Mesh and CloudWatch Application Insights** focus on service mesh and monitoring, not autoscaling infrastructure.
+* **CloudWatch alarms alone** can trigger actions but don’t directly scale Kubernetes nodes; you would still need an autoscaler or custom automation.
+* **API Gateway integration** manages API endpoints but doesn’t affect EKS node scaling.
+
+---
+Great summary! Here's a concise breakdown and some key points about Elastic Fabric Adapters (EFAs) based on what you shared:
+
+---
+
+### What is Elastic Fabric Adapter (EFA)?
+
+* **EFA** is a specialized network interface you can attach to EC2 instances.
+* Designed to accelerate **High Performance Computing (HPC)** and **machine learning** workloads.
+* Provides **lower latency**, **higher throughput**, and more consistent network performance compared to traditional TCP over ENA.
+
+---
+
+### Key Features
+
+* **OS-bypass capability:** Enables applications to bypass the OS kernel for network communication, reducing latency and CPU overhead.
+* **Integrates with HPC libraries:**
+
+  * **Libfabric 1.9.0**
+  * **Open MPI 4.0.2**
+  * **Intel MPI 2019 Update 6**
+* Supports machine learning communication libraries like **NVIDIA NCCL**.
+* Scales dynamically to application requirements.
+* Works on top of AWS’s existing network infrastructure.
+
+---
+
+### Limitations
+
+* OS-bypass **not supported on Windows** instances.
+
+  * On Windows, EFA behaves as a regular **Elastic Network Adapter (ENA)** without HPC acceleration.
+
+---
+
+### Difference Between ENA and EFA
+
+| Feature                | ENA               | EFA                               |
+| ---------------------- | ----------------- | --------------------------------- |
+| Basic IP networking    | Yes               | Yes                               |
+| OS-bypass capability   | No                | Yes                               |
+| Optimized for HPC & ML | No                | Yes                               |
+| Supported OS           | Linux and Windows | Linux only for OS-bypass features |
+
+---
+
+If you're planning HPC or distributed ML workloads on AWS, attaching EFAs to supported Linux EC2 instances is a great way to boost performance significantly!
+---
+Let's analyze the options carefully with respect to **fault tolerance** and the requirement of a **minimum of 4 EC2 instances** to handle the load.
+
+---
+
+### Key considerations:
+
+* The app needs **at least 4 instances running at all times**.
+* **Fault tolerance** means the system should **continue running if any one Availability Zone (AZ) fails**.
+* AWS recommends spreading instances across multiple AZs for high availability.
+* Application Load Balancer (ALB) can distribute traffic across multiple AZs.
+
+---
+
+### Option analysis:
+
+1. **Deploy an Auto Scaling group with 2 instances in each of 2 Availability Zones (2 AZs) behind an ALB.**
+
+* Total instances = 4 (2 + 2)
+* If **one AZ fails**, only 2 instances remain.
+* But the requirement is a minimum of 4 instances at all times.
+* So this does **not meet the minimum 4-instance requirement during AZ failure**.
+
+---
+
+2. **Deploy an Auto Scaling group with 1 instance in each of 4 Availability Zones (4 AZs) behind an ALB.**
+
+* Total instances = 4 (1 + 1 + 1 + 1)
+* If one AZ fails, 3 instances remain.
+* Less than the required 4 minimum.
+* Also, some regions don’t have 4 AZs; and spreading too thin can impact resilience and performance.
+
+---
+
+3. **Deploy an Auto Scaling group with 2 instances in each of 3 Availability Zones behind an ALB.** — **Correct answer**
+
+* Total instances = 6 (2 + 2 + 2)
+* If one AZ fails, **4 instances remain** (2 + 2).
+* This meets the minimum requirement even in the event of an AZ failure.
+* This provides **fault tolerance** and **meets the minimum capacity** requirement.
+
+---
+
+4. **Deploy an Auto Scaling group with 4 instances in one Availability Zone behind an ALB.**
+
+* No AZ redundancy — if that single AZ fails, entire app goes down.
+* Not fault tolerant.
+
+---
+
+### Summary:
+
+* Only option 3 guarantees that if one AZ fails, there are still at least 4 instances running.
+* This ensures **fault tolerance** **and** meets the **minimum instance count requirement**.
+
+---
+
+Let's break down the scenario and explain why the correct answer is **"Set the IOPS to 500 then maintain a low queue length."**
+
+---
+
+### Key Details:
+
+* Volume size: **10 GiB**
+* Volume type: **Provisioned IOPS SSD (io1)**
+* Requirement: Maintain **high IOPS** with **low latency**
+* Optimize **queue length** to balance throughput and latency
+
+---
+
+### Important concepts:
+
+1. **Provisioned IOPS SSD (io1)** volumes have a ratio of **maximum IOPS per GiB**:
+
+   * Maximum IOPS per volume = 50 IOPS per GiB
+   * So for a 10 GiB volume: max IOPS = 10 GiB × 50 IOPS/GiB = **500 IOPS**
+
+2. You cannot provision more than 500 IOPS for a 10 GiB io1 volume because that is the maximum limit based on the size.
+
+3. **Queue length**:
+
+   * A **low queue length** (generally 1-2) reduces latency, as requests are processed promptly.
+   * A **high queue length** may increase throughput but also increases latency, which is undesirable for low-latency workloads.
+
+---
+
+### Explanation of options:
+
+* **IOPS 600 with high queue length**:
+
+  * 600 IOPS exceeds the max allowed (500 for 10 GiB volume). Invalid configuration.
+  * High queue length leads to higher latency.
+
+* **IOPS 800 with low queue length**:
+
+  * 800 IOPS is above the max allowed for 10 GiB. Invalid.
+
+* **IOPS 400 with low queue length**:
+
+  * 400 IOPS is allowed, but not maximizing the volume capability (max is 500).
+  * Could be acceptable but does not maximize performance.
+
+* **IOPS 500 with low queue length**:
+
+  * Max allowed IOPS for 10 GiB volume.
+  * Low queue length minimizes latency.
+  * **This is the optimal balance** for high throughput and low latency.
+
+---
+
+### Summary:
+
+* For a 10 GiB io1 volume, **500 IOPS** is the maximum you can provision.
+* Setting **low queue length** reduces latency.
+* Therefore, **"Set the IOPS to 500 then maintain a low queue length"** is the best choice.
+
+---
+The **correct answer** is:
+
+> ✅ **Use Storage optimized instances with instance store volume.**
+
+---
+
+### 📘 **Explanation:**
+
+You are migrating a **NoSQL database** to an **EC2 instance**, and:
+
+* The database **replicates data** (so it has its own redundancy mechanism).
+* Your top priority is **high IOPS and sequential read/write throughput**.
+
+Let’s evaluate the options:
+
+---
+
+### ❌ **General purpose instances with EBS volume**
+
+* These instances (like `t3` or `m5`) are good for balanced workloads but **not designed for high I/O performance**.
+* EBS volumes (even io1/io2) add some latency due to network storage.
+* ❌ **Not ideal when I/O throughput is the highest priority.**
+
+---
+
+### ❌ **Compute optimized instance with instance store volume**
+
+* Compute-optimized instances (like `c5`) focus on **CPU performance**, not storage.
+* Instance store can offer high I/O, but compute-optimized is still not tuned for storage-heavy workloads.
+* ❌ **Not the best fit for a storage-intensive NoSQL database.**
+
+---
+
+### ✅ **Storage optimized instances with instance store volume**
+
+* These are instances like `i3`, `i4i`, or `d3`, designed specifically for **high-throughput, low-latency storage**.
+* They include **NVMe-based SSDs as instance store volumes**, offering very high IOPS and low latency.
+* Since your NoSQL database **already replicates data**, the non-persistent nature of instance store is acceptable.
+* ✅ **This is the best match when I/O throughput is the highest priority.**
+
+---
+
+### ❌ **Memory optimized instances with EBS volume**
+
+* Memory-optimized instances (like `r5`, `x1`) are great for in-memory DBs like Redis.
+* But you’re focused on **disk IOPS**, not RAM.
+* EBS, even provisioned, has network overhead compared to local instance store.
+* ❌ **Not ideal for your use case.**
+
+---
+
+### ✅ Summary
+
+| Option                                 | Suitable for High IOPS | Best for Your Use Case |
+| -------------------------------------- | ---------------------- | ---------------------- |
+| General purpose + EBS                  | ❌                      | ❌                      |
+| Compute optimized + instance store     | ⚠️                     | ❌                      |
+| **Storage optimized + instance store** | ✅                      | ✅                      |
+| Memory optimized + EBS                 | ❌                      | ❌                      |
+
+👉 Therefore, the **correct choice** is:
+
+> **Use Storage optimized instances with instance store volume.**
+---
+You're absolutely right in your summary—let’s break this down and clarify the current status and best-use cases for Amazon EBS volume types based on the latest AWS recommendations:
+
+---
+
+### ✅ **Current EBS Volume Types and Their Use Cases**
+
+| Volume Type                        | Characteristics                                                                  | Ideal Use Case                                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **gp3** (General Purpose SSD)      | Recommended default; predictable performance, baseline 3,000 IOPS (scalable)     | Boot volumes, dev/test, small/medium DBs, general workloads         |
+| **io1/io2** (Provisioned IOPS SSD) | High performance, low latency, supports multi-attach (io1/io2), provisioned IOPS | Large transactional DBs, latency-sensitive, I/O intensive workloads |
+| **st1** (Throughput Optimized HDD) | Low cost, high throughput for large, sequential workloads                        | Big data, data warehouses, log processing                           |
+| **sc1** (Cold HDD)                 | Lowest cost, designed for infrequent access                                      | Infrequently accessed data (cold storage), backups                  |
+| **Magnetic (Standard)**            | **Previous generation**, very low cost per GB but lower performance              | Legacy systems; no longer recommended for new workloads             |
+
+---
+
+### 🔍 Key Clarifications
+
+* ✅ **General Purpose SSD (`gp3`)** is the **default recommended EBS type** now, not `gp2`. It decouples storage and performance, making it more cost-effective.
+
+* ✅ **Provisioned IOPS SSD (`io1`, `io2`)** is ideal for **I/O-intensive** apps and databases like PostgreSQL, Oracle, or NoSQL DBs needing **consistent high performance**.
+
+* ✅ **Magnetic volumes** are **legacy/previous-generation** and largely replaced by `sc1` and `st1`.
+
+* ⚠️ **Multi-Attach** is supported **only by `io1` and `io2`**, **not** `gp2` or `gp3`.
+
+---
+
+### ✅ Conclusion
+
+For **default, broad use cases**: go with **`gp3`**.
+For **critical, high IOPS workloads**: use **`io1` or `io2`**.
+For **archival, infrequently accessed data**: use **`sc1` or `st1`** instead of Magnetic.
+
+---
+The **correct answer** is:
+
+> ✅ **Store the audit logs in a Glacier vault and use the Vault Lock feature.**
+
+---
+
+### ✅ Why This is the Correct Answer:
+
+**Amazon S3 Glacier Vault Lock** allows you to:
+
+* **Enforce compliance controls** for **write-once-read-many (WORM)** storage.
+* **Set a retention policy** (e.g., retain data for 5 years).
+* Prevent users—even administrators—from deleting or modifying data until the policy expires, making it ideal for **audit logs** and **compliance use cases** (e.g., SEC Rule 17a-4(f), FINRA, etc.).
+
+---
+
+### ❌ Why the Other Options Are Incorrect:
+
+1. **Amazon S3 + MFA Delete:**
+
+   * MFA Delete protects against **accidental deletions**, but it **does not enforce retention policies**.
+   * It requires manual setup and is **not a compliance-enforcing feature**.
+
+2. **Amazon EFS with NFSv4 file locking:**
+
+   * EFS file locking **prevents simultaneous writes**, not deletion or modification over time.
+   * No **built-in retention or compliance enforcement**.
+
+3. **Amazon EBS with monthly snapshots:**
+
+   * Snapshots are useful for **backup and disaster recovery**, but they do not **enforce a 5-year retention** or prevent deletion/modification.
+
+---
+
+### 🔐 Summary:
+
+For **long-term, tamper-proof audit log storage**, **Amazon S3 Glacier Vault Lock** is the most compliant and secure choice with **automated retention enforcement** and **WORM support**.
+
+---
+
+The **correct answer** is:
+
+> ✅ **3 instances in eu-west-1a, 3 instances in eu-west-1b, and 3 instances in eu-west-1c**
+
+---
+
+### 🧠 **Explanation:**
+
+The goal is to:
+
+* Ensure **6 EC2 instances are running at all times**
+* Provide **fault tolerance** for the **loss of one Availability Zone (AZ)**
+* Be **cost-effective**
+
+---
+
+### ✅ Why 3-3-3 is the Best Choice:
+
+* With **9 total instances (3 in each AZ)**, if **one AZ fails**, you still have **6 instances left** running across the remaining 2 AZs.
+* This ensures **high availability** and meets the **minimum running instance requirement**.
+* It's **more cost-effective** than deploying 6 or more instances in *each* AZ (like 6-6-6).
+
+---
+
+### ❌ Why the Other Options Are Incorrect:
+
+1. **6-6-0 (12 total instances)**:
+
+   * No instances in eu-west-1c, so it's not balanced.
+   * If either eu-west-1a or eu-west-1b fails, you’re left with **only 6 instances**, which **meets the requirement**, but it's **less fault-tolerant** because you don’t spread the risk across all 3 AZs.
+   * Still **more expensive** than needed.
+
+2. **6-6-6 (18 total instances)**:
+
+   * Fault-tolerant, but it **over-provisions** (3x the required number), making it **very costly**.
+
+3. **2-2-2 (6 total instances)**:
+
+   * Cost-effective, but **not fault-tolerant**.
+   * If one AZ fails, you're left with only **4 instances**, which **does not meet** the minimum requirement of 6 running instances.
+
+---
+
+### 🧩 Summary:
+
+To balance **fault tolerance**, **cost**, and the **minimum instance requirement**, the best setup is:
+
+> ✅ **3 EC2 instances in each AZ (eu-west-1a, eu-west-1b, eu-west-1c)** — Total of **9 instances**.
 ---
