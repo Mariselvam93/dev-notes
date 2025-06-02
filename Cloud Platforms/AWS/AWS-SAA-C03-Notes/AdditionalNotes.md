@@ -1,4 +1,6 @@
-U# 📘 AWS DHCP Options Set
+![alt text](image-10.png)
+---
+# 📘 AWS DHCP Options Set
 
 ## 🧾 What is it?
 A **DHCP Options Set** in AWS is a configuration attached to a **VPC** that defines how DHCP (Dynamic Host Configuration Protocol) provides network configuration parameters to instances.
@@ -5654,3 +5656,10 @@ To balance **fault tolerance**, **cost**, and the **minimum instance requirement
 ---
 
 ![alt text](image-6.png)
+---
+![alt text](image-7.png)
+---
+![alt text](image-8.png)
+---
+![alt text](image-9.png)
+---
